@@ -1,0 +1,9 @@
+.git
+.gitignore
+.vscode
+target
+data
+*.db
+*.db-shm
+*.db-wal
+HELP.md
