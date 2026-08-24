@@ -1,53 +1,128 @@
 # Lime
 
-API de marketplace construida con Java 21, Spring Boot y SQL Server.
+Marketplace inmobiliario fullstack estilo **Argenprop**: publicar, buscar y consultar propiedades en venta o alquiler.
 
-## Ejecutar con Docker
+| Capa | Stack |
+|------|-------|
+| Backend | Java 21 · Spring Boot 4.1 · JPA |
+| Frontend | React · Vite · TypeScript *(próximo)* |
+| Base de datos | SQL Server 2022 |
 
-La aplicacion y su base SQL Server se administran con Docker Compose:
+**Gestión del proyecto:** [Linear — Lime Project](https://linear.app/matias-sanmiguel/project/lime-project-26b8aba9d809)
+
+## Qué hace
+
+- **Visitantes** buscan avisos por ciudad, tipo, operación y precio.
+- **Publicadores** (particulares o inmobiliarias) crean avisos, los publican y reciben consultas.
+- **API REST** en `/api/v1` + **frontend React** para la experiencia web.
+
+## Estructura del repo
+
+```text
+Lime/
+├── src/                 # API Spring Boot
+├── frontend/            # React (a crear — ver Linear LIM-5)
+├── docs/
+│   └── endpoints.md     # Referencia API
+├── compose.yaml         # SQL Server + API
+├── Dockerfile
+└── pom.xml
+```
+
+## Quick start (Docker)
 
 ```bash
 docker compose up --build
 ```
 
-Esto levanta tres servicios: `db` (SQL Server), `db-init` (crea la base `lime` si no existe) y `api` (la aplicacion Spring Boot). La API queda disponible en `http://localhost:8080`.
+Levanta tres servicios:
 
-Los datos de SQL Server se guardan en el volumen administrado por Docker `lime-sqlserver-data`, montado dentro del contenedor en `/var/opt/mssql`. Detener o recrear el contenedor no elimina los datos.
-
-```bash
-docker compose down
-docker compose up -d
-```
-
-Para seguir los logs:
+| Servicio | Rol |
+|----------|-----|
+| `db` | SQL Server 2022 (volumen `lime-sqlserver-data`) |
+| `db-init` | Crea la base `lime` si no existe |
+| `api` | Spring Boot en `http://localhost:8080` |
 
 ```bash
-docker compose logs -f api
+docker compose logs -f api    # logs
+docker compose down           # parar (conserva datos)
+docker compose down --volumes # parar y borrar datos
 ```
 
-Para detener la aplicacion conservando la base:
+## Desarrollo local (API en host, DB en Docker)
+
+Levantá SQL Server y creá la base `lime`:
 
 ```bash
-docker compose down
+docker compose up db db-init -d
 ```
 
-Para eliminar tambien los datos persistidos:
+Corré la API apuntando a `localhost:1433`:
 
 ```bash
-docker compose down --volumes
+./mvnw spring-boot:run
 ```
 
-## Configuracion
+La contraseña de `sa` se toma de `MSSQL_SA_PASSWORD` (default `Lime_SA_2026!`), la misma que usa Compose.
 
-Compose configura la conexion a SQL Server mediante variables de entorno (`SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD`, etc.), definidas en `compose.yaml`. La contrasena del usuario `sa` se toma de la variable `MSSQL_SA_PASSWORD` (por defecto `Lime_SA_2026!`).
+Frontend *(cuando exista)*:
 
-Fuera de Docker (por ejemplo corriendo `./mvnw spring-boot:run` localmente sin setear esas variables), `application.properties` cae a un archivo SQLite local (`./data/lime.db` por defecto, configurable con `DATABASE_PATH`).
+```bash
+cd frontend
+npm install
+npm run dev    # http://localhost:5173
+```
 
-## Endpoints
+`.env` del frontend:
 
 ```text
-GET    /api/v1/properties
-POST   /api/v1/properties
-GET    /api/v1/properties/{id}
-DELETE /api/v1/properties/{id}
+VITE_API_URL=http://localhost:8080
 ```
+
+## Configuración
+
+`application.properties` apunta a SQL Server en `localhost:1433`, base `lime`, usuario `sa`.
+
+En Docker Compose, el servicio `api` sobreescribe el host a `db` vía `SPRING_DATASOURCE_*`. La contraseña de `sa` viene de `MSSQL_SA_PASSWORD` (default `Lime_SA_2026!`).
+
+## API
+
+Referencia completa en [`docs/endpoints.md`](docs/endpoints.md) y en Linear (doc **API — Endpoints**).
+
+Endpoints actuales:
+
+```text
+GET    /api/v1/properties          # listado paginado + filtros
+POST   /api/v1/properties          # crear (estado DRAFT)
+GET    /api/v1/properties/{id}     # detalle
+DELETE /api/v1/properties/{id}     # soft delete
+```
+
+Ejemplo:
+
+```bash
+curl "http://localhost:8080/api/v1/properties?city=buenos%20aires&operation=RENT"
+```
+
+## Estado del proyecto
+
+| Hecho | Pendiente |
+|-------|-----------|
+| CRUD avisos + filtros | Frontend React |
+| Docker + SQL Server | Auth JWT |
+| Soft delete | Publicar/pausar avisos |
+| | Imágenes y consultas |
+| | Tests + Flyway + CI |
+
+Ver [Roadmap en Linear](https://linear.app/matias-sanmiguel/document/roadmap-3601501dc6ab) e issues **LIM-1** a **LIM-7**.
+
+## Documentación (Linear)
+
+| Documento | Contenido |
+|-----------|-----------|
+| [Visión del producto](https://linear.app/matias-sanmiguel/document/vision-del-producto-80a9ad3e4929) | Usuarios, flujos, alcance MVP |
+| [Arquitectura](https://linear.app/matias-sanmiguel/document/arquitectura-2fbd89a5baa9) | Capas, DB, Docker, decisiones |
+| [API — Endpoints](https://linear.app/matias-sanmiguel/document/api-endpoints-11a0bc97a8f4) | Contrato REST completo |
+| [Modelo de dominio](https://linear.app/matias-sanmiguel/document/modelo-de-dominio-3346925dc741) | Entidades y reglas |
+| [Frontend React — Spec](https://linear.app/matias-sanmiguel/document/frontend-react-spec-e1d35daca685) | Páginas, componentes, setup |
+| [Roadmap](https://linear.app/matias-sanmiguel/document/roadmap-3601501dc6ab) | Fases y prioridades |

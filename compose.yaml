@@ -36,7 +36,6 @@ services:
       context: .
     environment:
       SPRING_APPLICATION_NAME: lime
-      SPRING_CONFIG_LOCATION: optional:file:/app/sqlserver.properties
       SPRING_DATASOURCE_URL: jdbc:sqlserver://db:1433;databaseName=lime;encrypt=true;trustServerCertificate=true
       SPRING_DATASOURCE_USERNAME: sa
       SPRING_DATASOURCE_PASSWORD: ${MSSQL_SA_PASSWORD:-Lime_SA_2026!}
