@@ -14,13 +14,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.uade.lime.property.dto.CreateInquiryRequest;
 import com.uade.lime.property.dto.CreatePropertyRequest;
+import com.uade.lime.property.dto.InquiryResponse;
 import com.uade.lime.property.dto.PageResponse;
 import com.uade.lime.property.dto.PropertyResponse;
+import com.uade.lime.property.model.Inquiry;
 import com.uade.lime.property.model.OperationType;
 import com.uade.lime.property.model.Property;
 import com.uade.lime.property.model.PropertyStatus;
 import com.uade.lime.property.model.PropertyType;
+import com.uade.lime.property.repository.InquiryRepository;
 import com.uade.lime.property.repository.PropertyRepository;
 
 import jakarta.persistence.criteria.Predicate;
@@ -29,9 +33,11 @@ import jakarta.persistence.criteria.Predicate;
 public class PropertyService {
 
     private final PropertyRepository repository;
+    private final InquiryRepository inquiryRepository;
 
-    public PropertyService(PropertyRepository repository) {
+    public PropertyService(PropertyRepository repository, InquiryRepository inquiryRepository) {
         this.repository = repository;
+        this.inquiryRepository = inquiryRepository;
     }
 
     @Transactional(readOnly = true)
@@ -108,6 +114,19 @@ public class PropertyService {
     @Transactional
     public void delete(Long id) {
         findActive(id).delete(Instant.now());
+    }
+
+    @Transactional
+    public InquiryResponse createInquiry(Long propertyId, CreateInquiryRequest request) {
+        Property property = findActive(propertyId);
+        Inquiry inquiry = Inquiry.create(
+                property,
+                request.name(),
+                request.email(),
+                request.phone(),
+                request.message(),
+                Instant.now());
+        return InquiryResponse.from(inquiryRepository.save(inquiry));
     }
 
     private Property findActive(Long id) {
