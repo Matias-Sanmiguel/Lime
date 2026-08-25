@@ -69,6 +69,29 @@ Crea aviso en estado `DRAFT`.
 
 ---
 
+### `PATCH /api/v1/properties/{id}`
+
+Actualiza únicamente los campos no nulos enviados en el body. Los campos omitidos conservan su valor actual.
+
+**Body** — `UpdatePropertyRequest` (campos opcionales):
+
+```json
+{
+  "price": 150000,
+  "description": "Departamento renovado con balcón"
+}
+```
+
+Los campos editables son los mismos de `CreatePropertyRequest`. El estado se modifica mediante los endpoints específicos de publicación y pausa.
+
+**200** — `PropertyResponse`
+
+**400** — body o valores inválidos.
+
+**404** — no existe o está borrado.
+
+---
+
 ### `DELETE /api/v1/properties/{id}`
 
 Soft delete.
@@ -119,7 +142,6 @@ Soft delete.
 
 | Método | Ruta | Descripción |
 |--------|------|-------------|
-| `PATCH` | `/properties/{id}` | Editar campos |
 | `POST` | `/properties/{id}/publish` | DRAFT → PUBLISHED |
 | `POST` | `/properties/{id}/pause` | PUBLISHED → PAUSED |
 | `POST` | `/auth/register` | Alta usuario |
@@ -141,6 +163,10 @@ curl -X POST http://localhost:8080/api/v1/properties \
   -d '{"title":"Loft","type":"APARTMENT","operation":"SALE","price":95000,"currency":"USD","city":"Rosario"}'
 
 curl http://localhost:8080/api/v1/properties/1
+
+curl -X PATCH http://localhost:8080/api/v1/properties/1 \
+  -H "Content-Type: application/json" \
+  -d '{"price":150000,"description":"Departamento renovado con balcón"}'
 
 curl -X DELETE http://localhost:8080/api/v1/properties/1
 ```

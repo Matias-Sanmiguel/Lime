@@ -17,6 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.uade.lime.property.dto.CreatePropertyRequest;
 import com.uade.lime.property.dto.PageResponse;
 import com.uade.lime.property.dto.PropertyResponse;
+import com.uade.lime.property.dto.UpdatePropertyRequest;
 import com.uade.lime.property.model.OperationType;
 import com.uade.lime.property.model.Property;
 import com.uade.lime.property.model.PropertyStatus;
@@ -106,6 +107,31 @@ public class PropertyService {
     }
 
     @Transactional
+    public PropertyResponse update(Long id, UpdatePropertyRequest request) {
+        Property property = findActive(id);
+        if (!hasUpdates(request)) {
+            return PropertyResponse.from(property);
+        }
+
+        property.update(
+                request.title() != null ? request.title() : property.getTitle(),
+                request.description() != null ? request.description() : property.getDescription(),
+                request.type() != null ? request.type() : property.getType(),
+                request.operation() != null ? request.operation() : property.getOperation(),
+                request.price() != null ? request.price() : property.getPrice(),
+                request.currency() != null ? normalizeCurrency(request.currency()) : property.getCurrency(),
+                request.address() != null ? request.address() : property.getAddress(),
+                request.city() != null ? request.city() : property.getCity(),
+                request.province() != null ? request.province() : property.getProvince(),
+                request.bedrooms() != null ? request.bedrooms() : property.getBedrooms(),
+                request.bathrooms() != null ? request.bathrooms() : property.getBathrooms(),
+                request.coveredArea() != null ? request.coveredArea() : property.getCoveredArea(),
+                request.totalArea() != null ? request.totalArea() : property.getTotalArea(),
+                Instant.now());
+        return PropertyResponse.from(property);
+    }
+
+    @Transactional
     public void delete(Long id) {
         findActive(id).delete(Instant.now());
     }
@@ -117,5 +143,21 @@ public class PropertyService {
 
     private String normalizeCurrency(String currency) {
         return currency == null ? null : currency.trim().toUpperCase();
+    }
+
+    private boolean hasUpdates(UpdatePropertyRequest request) {
+        return request.title() != null
+                || request.description() != null
+                || request.type() != null
+                || request.operation() != null
+                || request.price() != null
+                || request.currency() != null
+                || request.address() != null
+                || request.city() != null
+                || request.province() != null
+                || request.bedrooms() != null
+                || request.bathrooms() != null
+                || request.coveredArea() != null
+                || request.totalArea() != null;
     }
 }
