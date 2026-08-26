@@ -14,14 +14,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.uade.lime.property.dto.CreateImageRequest;
 import com.uade.lime.property.dto.CreatePropertyRequest;
+import com.uade.lime.property.dto.ImageResponse;
 import com.uade.lime.property.dto.PageResponse;
 import com.uade.lime.property.dto.PropertyResponse;
 import com.uade.lime.property.dto.UpdatePropertyRequest;
 import com.uade.lime.property.model.OperationType;
 import com.uade.lime.property.model.Property;
+import com.uade.lime.property.model.PropertyImage;
 import com.uade.lime.property.model.PropertyStatus;
 import com.uade.lime.property.model.PropertyType;
+import com.uade.lime.property.repository.PropertyImageRepository;
 import com.uade.lime.property.repository.PropertyRepository;
 
 import jakarta.persistence.criteria.Predicate;
@@ -30,9 +34,22 @@ import jakarta.persistence.criteria.Predicate;
 public class PropertyService {
 
     private final PropertyRepository repository;
+    private final PropertyImageRepository imageRepository;
 
-    public PropertyService(PropertyRepository repository) {
-        this.repository = repository;
+    //cambie el constructor para que la propiedad de se cree con imagenes
+    public PropertyService(PropertyRepository repository, PropertyImageRepository imageRepository) {
+    this.repository = repository;
+    this.imageRepository = imageRepository;
+    }
+
+    public ImageResponse addImage(Long propertyId, CreateImageRequest request) {
+    Property property = repository.findByIdAndDeletedAtIsNull(propertyId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Property not found"));
+
+    PropertyImage image = PropertyImage.of(property, request.url(), Instant.now());
+    PropertyImage saved = imageRepository.save(image);
+
+    return ImageResponse.from(saved);
     }
 
     @Transactional(readOnly = true)

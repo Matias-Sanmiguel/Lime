@@ -3,6 +3,7 @@ package com.uade.lime.property.controller;
 import java.math.BigDecimal;
 import java.net.URI;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -15,7 +16,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.uade.lime.property.dto.CreateImageRequest;
 import com.uade.lime.property.dto.CreatePropertyRequest;
+import com.uade.lime.property.dto.ImageResponse;
 import com.uade.lime.property.dto.PageResponse;
 import com.uade.lime.property.dto.PropertyResponse;
 import com.uade.lime.property.dto.UpdatePropertyRequest;
@@ -57,6 +60,12 @@ public class PropertyController {
     public ResponseEntity<PropertyResponse> create(@Valid @RequestBody CreatePropertyRequest request) {
         PropertyResponse created = service.create(request);
         return ResponseEntity.created(URI.create("/api/v1/properties/" + created.id())).body(created);
+    }
+
+    @PostMapping("/{id}/images")
+    public ResponseEntity<ImageResponse> addImage(@PathVariable Long id, @Valid @RequestBody CreateImageRequest request) {
+        ImageResponse created = service.addImage(id, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @GetMapping("/{id}")
