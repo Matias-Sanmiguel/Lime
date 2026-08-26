@@ -115,4 +115,13 @@ public class Property {
         deletedAt = now;
         updatedAt = now;
     }
+    public void publish(Instant now) {
+        status = PropertyStatus.PUBLISHED;
+        updatedAt = now;
+    }
+
+    public void pause(Instant now) {
+        status = PropertyStatus.PAUSED;
+        updatedAt = now;
+    }
 }

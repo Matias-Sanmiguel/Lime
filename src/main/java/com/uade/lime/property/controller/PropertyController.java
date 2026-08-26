@@ -67,4 +67,14 @@ public class PropertyController {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{id}/publish")
+    public PropertyResponse publish(@PathVariable Long id) {
+        return service.publish(id);
+    }
+
+    @PostMapping("/{id}/pause")
+    public PropertyResponse pause(@PathVariable Long id) {
+        return service.pause(id);
+    }
 }
