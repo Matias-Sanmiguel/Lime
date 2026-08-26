@@ -24,10 +24,15 @@ public record PropertyResponse(
         BigDecimal coveredArea,
         BigDecimal totalArea,
         PropertyStatus status,
+        OwnerResponse owner,
         Instant createdAt,
         Instant updatedAt) {
 
     public static PropertyResponse from(Property property) {
+        return from(property, null);
+    }
+
+    public static PropertyResponse from(Property property, OwnerResponse owner) {
         return new PropertyResponse(
                 property.getId(),
                 property.getTitle(),
@@ -44,6 +49,7 @@ public record PropertyResponse(
                 property.getCoveredArea(),
                 property.getTotalArea(),
                 property.getStatus(),
+                owner,
                 property.getCreatedAt(),
                 property.getUpdatedAt());
     }
