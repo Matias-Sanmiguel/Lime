@@ -106,6 +106,7 @@ POST   /api/v1/properties/{id}/pause
 POST   /api/v1/properties/{id}/images      # JSON { "url" } (no multipart)
 POST   /api/v1/properties/{id}/inquiries
 GET    /api/v1/me/properties               # header X-User-Id (no JWT)
+GET    /api/v1/me/inquiries                # header X-User-Id (no JWT)
 ```
 
 Ejemplo:
@@ -120,10 +121,10 @@ curl "http://localhost:8080/api/v1/properties?city=buenos%20aires&operation=RENT
 |-------|-----------|
 | CRUD avisos + filtros + PATCH | Frontend React |
 | Docker + SQL Server | Auth JWT (Busse) · `GET/PATCH /me` (Matías) |
-| Soft delete | Inbox consultas (Nico) |
+| Soft delete | Detalle/PATCH consultas · `unreadOnly` |
 | Publish / pause | Multipart fotos + servir `/uploads` |
 | POST imagen (URL) · POST consulta | Tests + Flyway + CI |
-| `GET /me/properties` (`X-User-Id`) | |
+| `GET /me/properties` · `GET /me/inquiries` (`X-User-Id`) | |
 
 Ver [Roadmap en Linear](https://linear.app/matias-sanmiguel/document/roadmap-3601501dc6ab) e issues **LIM-1** a **LIM-7**.
 
