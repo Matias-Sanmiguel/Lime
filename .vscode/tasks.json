@@ -1,0 +1,94 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "docker: db",
+      "type": "shell",
+      "command": "docker compose up db db-init -d",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "group": "none"
+    },
+    {
+      "label": "docker: up",
+      "type": "shell",
+      "command": "docker compose up --build",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
+    },
+    {
+      "label": "docker: down",
+      "type": "shell",
+      "command": "docker compose down",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "silent"
+      }
+    },
+    {
+      "label": "maven: compile",
+      "type": "shell",
+      "command": "./mvnw -q compile",
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "JAVA_HOME": "/usr/lib/jvm/java-21-openjdk"
+        }
+      },
+      "problemMatcher": "$javac",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "maven: package",
+      "type": "shell",
+      "command": "./mvnw -q -DskipTests package",
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "JAVA_HOME": "/usr/lib/jvm/java-21-openjdk"
+        }
+      },
+      "problemMatcher": "$javac",
+      "group": "build"
+    },
+    {
+      "label": "maven: spring-boot run",
+      "type": "shell",
+      "command": "./mvnw spring-boot:run",
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "JAVA_HOME": "/usr/lib/jvm/java-21-openjdk"
+        }
+      },
+      "problemMatcher": [],
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    }
+  ]
+}

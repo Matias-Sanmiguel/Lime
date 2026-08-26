@@ -1,0 +1,30 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Spring Boot (local + SQL Server)",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "com.uade.lime.LimeApplication",
+      "projectName": "lime",
+      "preLaunchTask": "docker: db",
+      "env": {
+        "MSSQL_SA_PASSWORD": "Lime_SA_2026!"
+      },
+      "envFile": "${workspaceFolder}/.env"
+    },
+    {
+      "type": "java",
+      "name": "Spring Boot (sin levantar Docker)",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "com.uade.lime.LimeApplication",
+      "projectName": "lime",
+      "env": {
+        "MSSQL_SA_PASSWORD": "Lime_SA_2026!"
+      },
+      "envFile": "${workspaceFolder}/.env"
+    }
+  ]
+}

@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lime — Editorial Lime</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #1d1d1f;
+      --paper: #f7f7f4;
+      --white: #ffffff;
+      --lime: #b8f34b;
+      --deep: #326b2f;
+      --mist: #e8e8e3;
+      --muted: #6b6b67;
+      --bg: var(--paper);
+      --surface: var(--white);
+      --text: var(--ink);
+      --line: var(--mist);
+      --mark: var(--deep);
+      --nav: rgba(247, 247, 244, 0.86);
+      --shadow: 0 1px 2px rgba(29, 29, 31, 0.06);
+      --r: 6px;
+      --r-md: 8px;
+      --space: 8px;
+    }
+    html[data-theme="dark"] {
+      --bg: #121212;
+      --surface: #1c1c1e;
+      --text: #f4f4f1;
+      --muted: #a1a19c;
+      --line: #2c2c2e;
+      --mark: var(--lime);
+      --nav: rgba(18, 18, 18, 0.82);
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+      --mist: #2c2c2e;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body {
+      font-family: Inter, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 16px;
+      line-height: 1.5;
+    }
+    nav.top {
+      position: sticky;
+      top: 0;
+      z-index: 8;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 24px;
+      border-bottom: 1px solid var(--line);
+      background: var(--nav);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .lockup {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--mark);
+      text-decoration: none;
+    }
+    .lockup svg { width: 32px; height: 32px; display: block; }
+    .lockup span {
+      font-family: Newsreader, "Source Serif 4", serif;
+      font-weight: 600;
+      font-size: 28px;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      line-height: 1;
+    }
+    .ghost {
+      height: 36px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--text);
+      border-radius: var(--r);
+      font: 500 14px Inter, sans-serif;
+      cursor: pointer;
+    }
+    .ghost:hover { background: var(--surface); }
+    .page {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 48px 24px 96px;
+    }
+    .display {
+      font-family: Newsreader, serif;
+      font-weight: 600;
+      font-size: clamp(32px, 5vw, 40px);
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin: 0 0 16px;
+      max-width: 16ch;
+    }
+    .lead {
+      margin: 0 0 48px;
+      max-width: 54ch;
+      color: var(--muted);
+    }
+    section { margin: 0 0 64px; }
+    .kicker {
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0 0 12px;
+    }
+    h2 {
+      font-family: Newsreader, serif;
+      font-weight: 600;
+      font-size: 22px;
+      line-height: 1.25;
+      letter-spacing: -0.02em;
+      margin: 0 0 8px;
+    }
+    h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 0 0 8px;
+    }
+    .note { color: var(--muted); font-size: 14px; margin: 0 0 24px; max-width: 58ch; }
+    hr.rule {
+      border: 0;
+      border-top: 1px solid var(--line);
+      margin: 32px 0;
+    }
+    .stack { display: flex; flex-direction: column; gap: 16px; }
+    .row { display: flex; flex-wrap: wrap; gap: 16px; align-items: end; }
+    .stage {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--r-md);
+      padding: 32px;
+      min-height: 160px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .stage.paper { background: var(--bg); }
+    .stage.ink { background: var(--ink); color: #f4f4f1; }
+    .stage.lime { background: var(--lime); color: var(--ink); }
+    .stage.dark { background: #121212; color: #b8f34b; }
+    .mark { color: var(--mark); }
+    .sizes { display: flex; align-items: end; gap: 24px; flex-wrap: wrap; }
+    .sizes figure { margin: 0; text-align: center; }
+    .sizes figcaption { font-size: 12px; color: var(--muted); margin-top: 8px; font-weight: 500; }
+    .construct {
+      position: relative;
+      width: 256px;
+      height: 256px;
+      margin: 0 auto;
+    }
+    .construct .grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(to right, rgba(184, 243, 75, 0.35) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(184, 243, 75, 0.35) 1px, transparent 1px);
+      background-size: 16px 16px;
+      pointer-events: none;
+    }
+    .construct .safe {
+      position: absolute;
+      inset: 32px;
+      border: 1px dashed color-mix(in srgb, var(--lime) 70%, transparent);
+      pointer-events: none;
+    }
+    .construct svg { width: 192px; height: 192px; position: absolute; inset: 32px; color: var(--mark); }
+    .swatches { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+    .swatch { border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+    .swatch i { display: block; height: 72px; }
+    .swatch p { margin: 0; padding: 10px 12px 12px; font-size: 12px; }
+    .swatch span { display: block; color: var(--muted); font-weight: 500; }
+    .pairs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; font-size: 14px; }
+    .ok { color: var(--deep); font-weight: 600; }
+    html[data-theme="dark"] .ok { color: var(--lime); }
+    .no { color: #c74646; font-weight: 600; }
+    .type-sample { margin: 0 0 20px; }
+    .type-sample .meta { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .serif { font-family: Newsreader, serif; font-weight: 600; letter-spacing: -0.02em; }
+    .scale { display: flex; align-items: end; gap: 8px; height: 80px; }
+    .scale b {
+      display: block;
+      width: 24px;
+      background: var(--mark);
+      border-radius: 2px 2px 0 0;
+      opacity: 0.85;
+    }
+    .icons { display: flex; gap: 24px; align-items: center; color: var(--text); }
+    .controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .btn {
+      height: 38px;
+      padding: 0 16px;
+      border: 0;
+      border-radius: var(--r);
+      font: 600 14px Inter, sans-serif;
+      cursor: pointer;
+    }
+    .btn-primary { background: var(--ink); color: #fff; }
+    html[data-theme="dark"] .btn-primary { background: var(--text); color: #121212; }
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+    .field {
+      height: 38px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      background: var(--surface);
+      color: var(--text);
+      font: 400 14px Inter, sans-serif;
+      min-width: 220px;
+    }
+    .field:focus { outline: none; border-color: var(--deep); }
+    html[data-theme="dark"] .field:focus { border-color: var(--lime); }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      height: 24px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: var(--mist);
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .tag.lime { background: var(--lime); color: var(--ink); }
+    .block {
+      padding: 16px 0;
+      border-top: 1px solid var(--line);
+      max-width: 58ch;
+    }
+    .block h3 { font-family: Newsreader, serif; font-size: 22px; font-weight: 600; }
+    .app {
+      border-top: 1px solid var(--line);
+      padding-top: 8px;
+    }
+    .app-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 16px;
+      align-items: baseline;
+      padding: 12px 8px;
+      border-radius: var(--r);
+    }
+    .app-row + .app-row { border-top: 1px solid var(--line); }
+    .app-row.active {
+      background: color-mix(in srgb, var(--lime) 22%, transparent);
+      box-shadow: inset 3px 0 0 var(--lime);
+    }
+    .app-row .place { font-weight: 600; }
+    .app-row .meta { color: var(--muted); font-size: 14px; }
+    .app-row .price { font-variant-numeric: tabular-nums; font-weight: 600; }
+    .app-toolbar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+    }
+    @media (max-width: 720px) {
+      .page { padding: 32px 16px 72px; }
+      nav.top { padding: 10px 16px; }
+      .swatches, .pairs { grid-template-columns: 1fr 1fr; }
+      .app-row { grid-template-columns: 1fr; gap: 4px; }
+      .construct { width: 200px; height: 200px; }
+      .construct svg, .construct .safe { inset: 24px; }
+      .construct svg { width: 152px; height: 152px; }
+    }
+  </style>
+</head>
+<body>
+  <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
+    <symbol id="lime-mark" viewBox="0 0 64 64" fill="currentColor">
+      <path fill-rule="evenodd" d="M32 1a31 31 0 1 0 0 62 31 31 0 1 0 0-62zm0 6a25 25 0 1 1 0 50 25 25 0 1 1 0-50z"/>
+      <path d="M34.366 26.054L40.948 9.515A24.2 24.2 0 0 1 53.843 21.582L37.777 29.245A6.4 6.4 0 0 0 34.366 26.054Z"/>
+      <path d="M37.93 29.592L54.422 22.895A24.2 24.2 0 0 1 54.638 40.554L37.987 34.262A6.4 6.4 0 0 0 37.93 29.592Z"/>
+      <path d="M37.842 34.613L54.091 41.882A24.2 24.2 0 0 1 41.495 54.26L34.511 37.887A6.4 6.4 0 0 0 37.842 34.613Z"/>
+      <path d="M34.157 38.025L40.158 54.784A24.2 24.2 0 0 1 22.505 54.26L29.489 37.887A6.4 6.4 0 0 0 34.157 38.025Z"/>
+      <path d="M29.144 37.728L21.202 53.657A24.2 24.2 0 0 1 9.362 40.554L26.013 34.262A6.4 6.4 0 0 0 29.144 37.728Z"/>
+      <path d="M25.89 33.903L8.895 39.196A24.2 24.2 0 0 1 10.157 21.582L26.223 29.245A6.4 6.4 0 0 0 25.89 33.903Z"/>
+      <path d="M26.397 28.907L10.814 20.305A24.2 24.2 0 0 1 24.401 9.024L29.99 25.924A6.4 6.4 0 0 0 26.397 28.907Z"/>
+      <rect x="29.15" y="8.2" width="5.7" height="16.6" rx="1.15"/>
+      <rect x="29.6" y="29.6" width="4.8" height="4.8" rx="0.7"/>
+    </symbol>
+  </svg>
+
+  <nav class="top">
+    <a class="lockup" href="#top">
+      <svg class="mark"><use href="#lime-mark"/></svg>
+      <span>Lime</span>
+    </a>
+    <button class="ghost" type="button" id="theme">Cambiar a oscuro</button>
+  </nav>
+
+  <main class="page" id="top">
+    <p class="kicker">Identidad · Editorial Lime</p>
+    <h1 class="display">Papel, tinta y una lima que también es una planta.</h1>
+    <p class="lead">Marketplace inmobiliario argentino. El sistema toma el ritmo de una página Notion y la precisión de una app macOS, sin copiar ninguno de los dos.</p>
+
+    <section>
+      <p class="kicker">Marca</p>
+      <h2>Isotipo y wordmark</h2>
+      <p class="note">Siete gajos. Un vano rectangular arriba —ventana—. Un patio cuadrado al centro. Wordmark en Newsreader, no en Inter.</p>
+      <div class="row">
+        <div class="stage paper" style="flex:1;min-width:200px">
+          <svg width="96" height="96" class="mark"><use href="#lime-mark"/></svg>
+        </div>
+        <div class="stage" style="flex:2;min-width:240px;justify-content:flex-start;gap:16px">
+          <svg width="48" height="48" class="mark"><use href="#lime-mark"/></svg>
+          <span class="serif" style="font-size:40px;letter-spacing:-0.03em">Lime</span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <p class="kicker">Construcción</p>
+      <h2>Grilla 8 px y espacio de seguridad</h2>
+      <p class="note">El círculo vive en 64 unidades. La zona de respeto es un cuarto del diámetro. Nada de texto adentro.</p>
+      <div class="stage paper">
+        <div class="construct">
+          <div class="grid"></div>
+          <div class="safe"></div>
+          <svg><use href="#lime-mark"/></svg>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <p class="kicker">Escala</p>
+      <h2>16 · 24 · 32 · 64 · 256</h2>
+      <p class="note">A 16 px el vano tiene que seguir siendo una abertura, no un diente de engranaje.</p>
+      <div class="sizes">
+        <figure><svg width="16" height="16" class="mark"><use href="#lime-mark"/></svg><figcaption>16</figcaption></figure>
+        <figure><svg width="24" height="24" class="mark"><use href="#lime-mark"/></svg><figcaption>24</figcaption></figure>
+        <figure><svg width="32" height="32" class="mark"><use href="#lime-mark"/></svg><figcaption>32</figcaption></figure>
+        <figure><svg width="64" height="64" class="mark"><use href="#lime-mark"/></svg><figcaption>64</figcaption></figure>
+        <figure><svg width="128" height="128" class="mark"><use href="#lime-mark"/></svg><figcaption>256*</figcaption></figure>
+      </div>
+    </section>
+
+    <section>
+      <p class="kicker">Variantes</p>
+      <h2>Claro, oscuro, tinta, lima</h2>
+      <div class="row">
+        <div class="stage paper" style="flex:1;min-width:140px;color:#326b2f"><svg width="72" height="72"><use href="#lime-mark"/></svg></div>
+        <div class="stage" style="flex:1;min-width:140px;color:#326b2f"><svg width="72" height="72"><use href="#lime-mark"/></svg></div>
+        <div class="stage dark" style="flex:1;min-width:140px"><svg width="72" height="72"><use href="#lime-mark"/></svg></div>
+        <div class="stage ink" style="flex:1;min-width:140px;color:#b8f34b"><svg width="72" height="72"><use href="#lime-mark"/></svg></div>
+        <div class="stage lime" style="flex:1;min-width:140px"><svg width="72" height="72"><use href="#lime-mark"/></svg></div>
+      </div>
+    </section>
+
+    <section>
+      <p class="kicker">Color</p>
+      <h2>Paleta y contraste</h2>
+      <p class="note">Ink estructura. Paper da el tono editorial. Lime es firma, no relleno. El CTA es Ink con texto blanco.</p>
+      <div class="swatches">
+        <div class="swatch"><i style="background:#1d1d1f"></i><p>Ink<span>#1D1D1F</span></p></div>
+        <div class="swatch"><i style="background:#f7f7f4"></i><p>Paper<span>#F7F7F4</span></p></div>
+        <div class="swatch"><i style="background:#ffffff"></i><p>White<span>#FFFFFF</span></p></div>
+        <div class="swatch"><i style="background:#b8f34b"></i><p>Lime<span>#B8F34B</span></p></div>
+        <div class="swatch"><i style="background:#326b2f"></i><p>Deep Lime<span>#326B2F</span></p></div>
+        <div class="swatch"><i style="background:#e8e8e3"></i><p>Mist<span>#E8E8E3</span></p></div>
+        <div class="swatch"><i style="background:#6b6b67"></i><p>Muted<span>#6B6B67</span></p></div>
+        <div class="swatch"><i style="background:#121212"></i><p>Dark bg<span>#121212</span></p></div>
+        <div class="swatch"><i style="background:#1c1c1e"></i><p>Dark surface<span>#1C1C1E</span></p></div>
+        <div class="swatch"><i style="background:#f4f4f1"></i><p>Dark text<span>#F4F4F1</span></p></div>
+      </div>
+      <hr class="rule" />
+      <div class="pairs">
+        <div>Ink sobre Paper <span class="ok">AA</span></div>
+        <div>White sobre Ink <span class="ok">AA</span></div>
+        <div>Deep Lime sobre Paper <span class="ok">AA</span></div>
+        <div>Text-dark sobre #121212 <span class="ok">AA</span></div>
+        <div>Lime como texto 14 px sobre blanco <span class="no">No</span></div>
+        <div>Lime mark sobre oscuro <span class="ok">AA ícono</span></div>
+      </div>
+    </section>
+
+    <section>
+      <p class="kicker">Tipo</p>
+      <h2>Newsreader + Inter</h2>
+      <div class="type-sample"><div class="serif" style="font-size:40px;line-height:1.15">Encontrá el próximo lugar.</div><p class="meta">display · Newsreader 600 · 40 / 1.15 · −0.03em</p></div>
+      <div class="type-sample"><div class="serif" style="font-size:32px;line-height:1.2">Listado en Palermo</div><p class="meta">h1 · Newsreader 600 · 32</p></div>
+      <div class="type-sample"><div class="serif" style="font-size:22px">Datos del aviso</div><p class="meta">h2 · Newsreader 600 · 22</p></div>
+      <div class="type-sample"><div style="font-weight:600">Publicar aviso</div><p class="meta">h3 · Inter 600 · 16</p></div>
+      <div class="type-sample"><div>Tres ambientes, 78 m² cubiertos, luminoso a la calle. Expensas incluidas en el detalle.</div><p class="meta">body · Inter 400 · 16 / 1.5</p></div>
+      <div class="type-sample"><div style="font-size:14px">CABA · Actualizado hoy</div><p class="meta">small · Inter 400 · 14</p></div>
+      <div class="type-sample"><div style="font-size:13px;font-weight:500;letter-spacing:0.01em">UBICACIÓN</div><p class="meta">label · Inter 500 · 13</p></div>
+      <div class="type-sample"><div style="font-size:12px;font-weight:500;letter-spacing:0.02em;color:var(--muted)">USD · 15.2.1</div><p class="meta">caption · Inter 500 · 12</p></div>
+    </section>
+
+    <section>
+      <p class="kicker">Sistema</p>
+      <h2>Espacio, radio, borde, iconos</h2>
+      <p class="note">Escala 4–64. Radios 6 / 8 / 10. Pills solo en tags. Iconos 16–24, trazo 1.5.</p>
+      <div class="scale" aria-hidden="true">
+        <b style="height:4px"></b><b style="height:8px"></b><b style="height:12px"></b><b style="height:16px"></b>
+        <b style="height:24px"></b><b style="height:32px"></b><b style="height:48px"></b><b style="height:64px"></b>
+      </div>
+      <p class="meta" style="color:var(--muted);font-size:12px;margin:8px 0 24px">4 8 12 16 24 32 48 64</p>
+      <div class="row">
+        <div class="stage" style="width:72px;height:72px;border-radius:6px;min-height:0">6</div>
+        <div class="stage" style="width:72px;height:72px;border-radius:8px;min-height:0">8</div>
+        <div class="stage" style="width:72px;height:72px;border-radius:10px;min-height:0">10</div>
+      </div>
+      <div class="icons" style="margin-top:24px">
+        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="5" width="16" height="14" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="0.5"/></svg>
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="7"/><path d="M10 6v8M6 10h8"/></svg>
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 14l6-10 6 10H2z"/></svg>
+      </div>
+    </section>
+
+    <section>
+      <p class="kicker">Controles</p>
+      <h2>Botones, campos, tags, bloques</h2>
+      <div class="controls">
+        <button class="btn btn-primary" type="button">Publicar aviso</button>
+        <button class="btn btn-secondary" type="button">Guardar</button>
+        <input class="field" type="text" value="Palermo, CABA" aria-label="Ubicación" />
+        <span class="tag">Venta</span>
+        <span class="tag lime">Publicado</span>
+      </div>
+      <div class="block">
+        <h3>Un aviso es una página.</h3>
+        <p style="margin:0;color:var(--muted);font-size:15px">Título, precio y barrio se leen en vertical. El lima marca selección, no cada fila.</p>
+      </div>
+    </section>
+
+    <section>
+      <p class="kicker">Aplicación</p>
+      <h2>Una lista, no un tablero de cards</h2>
+      <p class="note">Composición abstracta para evaluar la marca. No es una pantalla del producto.</p>
+      <div class="app">
+        <div class="app-toolbar"><span>CABA</span><span>·</span><span>Venta</span><span>·</span><span>3 resultados</span></div>
+        <div class="app-row active">
+          <span class="place">Humboldt 1540, Palermo</span>
+          <span class="meta">3 amb · 78 m²</span>
+          <span class="price">USD 186.000</span>
+        </div>
+        <div class="app-row">
+          <span class="place">Acevedo 890, Villa Crespo</span>
+          <span class="meta">PH · 92 m²</span>
+          <span class="price">USD 210.000</span>
+        </div>
+        <div class="app-row">
+          <span class="place">Alsina 200, San Isidro</span>
+          <span class="meta">Casa · 210 m²</span>
+          <span class="price">USD 420.000</span>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script>
+    const button = document.getElementById("theme");
+    const setTheme = (theme) => {
+      document.documentElement.dataset.theme = theme;
+      button.textContent = theme === "dark" ? "Cambiar a claro" : "Cambiar a oscuro";
+    };
+    button.addEventListener("click", () => {
+      setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
+    });
+  </script>
+</body>
+</html>

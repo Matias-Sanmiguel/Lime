@@ -1,5 +1,6 @@
 HELP.md
 target/
+.env
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
@@ -29,5 +30,6 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-### VS Code ###
-.vscode/
+### VS Code / Cursor (workspace compartido) ###
+# .vscode/ se commitea para el equipo
+.cursor/
