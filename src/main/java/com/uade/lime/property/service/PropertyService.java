@@ -15,16 +15,20 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.uade.lime.property.dto.CreateImageRequest;
+import com.uade.lime.property.dto.CreateInquiryRequest;
 import com.uade.lime.property.dto.CreatePropertyRequest;
 import com.uade.lime.property.dto.ImageResponse;
+import com.uade.lime.property.dto.InquiryResponse;
 import com.uade.lime.property.dto.PageResponse;
 import com.uade.lime.property.dto.PropertyResponse;
 import com.uade.lime.property.dto.UpdatePropertyRequest;
+import com.uade.lime.property.model.Inquiry;
 import com.uade.lime.property.model.OperationType;
 import com.uade.lime.property.model.Property;
 import com.uade.lime.property.model.PropertyImage;
 import com.uade.lime.property.model.PropertyStatus;
 import com.uade.lime.property.model.PropertyType;
+import com.uade.lime.property.repository.InquiryRepository;
 import com.uade.lime.property.repository.PropertyImageRepository;
 import com.uade.lime.property.repository.PropertyRepository;
 
@@ -35,21 +39,22 @@ public class PropertyService {
 
     private final PropertyRepository repository;
     private final PropertyImageRepository imageRepository;
+    private final InquiryRepository inquiryRepository;
 
-    //cambie el constructor para que la propiedad de se cree con imagenes
-    public PropertyService(PropertyRepository repository, PropertyImageRepository imageRepository) {
-    this.repository = repository;
-    this.imageRepository = imageRepository;
+    public PropertyService(
+            PropertyRepository repository,
+            PropertyImageRepository imageRepository,
+            InquiryRepository inquiryRepository) {
+        this.repository = repository;
+        this.imageRepository = imageRepository;
+        this.inquiryRepository = inquiryRepository;
     }
 
+    @Transactional
     public ImageResponse addImage(Long propertyId, CreateImageRequest request) {
-    Property property = repository.findByIdAndDeletedAtIsNull(propertyId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Property not found"));
-
-    PropertyImage image = PropertyImage.of(property, request.url(), Instant.now());
-    PropertyImage saved = imageRepository.save(image);
-
-    return ImageResponse.from(saved);
+        Property property = findActive(propertyId);
+        PropertyImage image = PropertyImage.of(property, request.url(), Instant.now());
+        return ImageResponse.from(imageRepository.save(image));
     }
 
     @Transactional(readOnly = true)
@@ -151,6 +156,19 @@ public class PropertyService {
     @Transactional
     public void delete(Long id) {
         findActive(id).delete(Instant.now());
+    }
+
+    @Transactional
+    public InquiryResponse createInquiry(Long propertyId, CreateInquiryRequest request) {
+        Property property = findActive(propertyId);
+        Inquiry inquiry = Inquiry.create(
+                property,
+                request.name(),
+                request.email(),
+                request.phone(),
+                request.message(),
+                Instant.now());
+        return InquiryResponse.from(inquiryRepository.save(inquiry));
     }
 
     private Property findActive(Long id) {

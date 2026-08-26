@@ -17,8 +17,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.uade.lime.property.dto.CreateImageRequest;
+import com.uade.lime.property.dto.CreateInquiryRequest;
 import com.uade.lime.property.dto.CreatePropertyRequest;
 import com.uade.lime.property.dto.ImageResponse;
+import com.uade.lime.property.dto.InquiryResponse;
 import com.uade.lime.property.dto.PageResponse;
 import com.uade.lime.property.dto.PropertyResponse;
 import com.uade.lime.property.dto.UpdatePropertyRequest;
@@ -92,5 +94,13 @@ public class PropertyController {
     @PostMapping("/{id}/pause")
     public PropertyResponse pause(@PathVariable Long id) {
         return service.pause(id);
+    }
+
+    @PostMapping("/{id}/inquiries")
+    public ResponseEntity<InquiryResponse> createInquiry(
+            @PathVariable Long id,
+            @Valid @RequestBody CreateInquiryRequest request) {
+        InquiryResponse created = service.createInquiry(id, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 }
