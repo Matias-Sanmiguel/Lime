@@ -95,6 +95,7 @@ Endpoints actuales:
 GET    /api/v1/properties          # listado paginado + filtros
 POST   /api/v1/properties          # crear (estado DRAFT)
 GET    /api/v1/properties/{id}     # detalle
+PATCH  /api/v1/properties/{id}     # editar campos
 DELETE /api/v1/properties/{id}     # soft delete
 ```
 

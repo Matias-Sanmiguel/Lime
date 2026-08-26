@@ -115,6 +115,7 @@ public class Property {
         deletedAt = now;
         updatedAt = now;
     }
+
     public void publish(Instant now) {
         status = PropertyStatus.PUBLISHED;
         updatedAt = now;
@@ -123,5 +124,36 @@ public class Property {
     public void pause(Instant now) {
         status = PropertyStatus.PAUSED;
         updatedAt = now;
+    }
+
+    public void update(
+            String title,
+            String description,
+            PropertyType type,
+            OperationType operation,
+            BigDecimal price,
+            String currency,
+            String address,
+            String city,
+            String province,
+            Integer bedrooms,
+            Integer bathrooms,
+            BigDecimal coveredArea,
+            BigDecimal totalArea,
+            Instant now) {
+        this.title = title;
+        this.description = description;
+        this.type = type;
+        this.operation = operation;
+        this.price = price;
+        this.currency = currency;
+        this.address = address;
+        this.city = city;
+        this.province = province;
+        this.bedrooms = bedrooms;
+        this.bathrooms = bathrooms;
+        this.coveredArea = coveredArea;
+        this.totalArea = totalArea;
+        this.updatedAt = now;
     }
 }
