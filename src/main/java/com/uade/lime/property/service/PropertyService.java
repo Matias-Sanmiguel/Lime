@@ -118,4 +118,25 @@ public class PropertyService {
     private String normalizeCurrency(String currency) {
         return currency == null ? null : currency.trim().toUpperCase();
     }
+
+    @Transactional
+    public PropertyResponse publish(Long id) {
+        Property property = findActive(id);
+        PropertyStatus current = property.getStatus();
+        if (current != PropertyStatus.DRAFT && current != PropertyStatus.PAUSED) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Cannot publish a property in status " + current);
+        }
+        property.publish(Instant.now());
+        return PropertyResponse.from(property);
+    }
+
+    @Transactional
+    public PropertyResponse pause(Long id) {
+        Property property = findActive(id);
+        if (property.getStatus() != PropertyStatus.PUBLISHED) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Cannot pause a property in status " + property.getStatus());
+        }
+        property.pause(Instant.now());
+        return PropertyResponse.from(property);
+    }
 }
