@@ -89,6 +89,8 @@ VITE_API_URL=http://localhost:8080
 
 En Docker Compose, el servicio `api` sobreescribe el host a `db` vía `SPRING_DATASOURCE_*`. La contraseña de `sa` viene de `MSSQL_SA_PASSWORD` (default `Lime_SA_2026!`).
 
+La clave de firma de los JWT (HS256) viene de `JWT_SECRET` (default de desarrollo incluido en `.env.example`, **no usar en producción**).
+
 ## API
 
 Contrato v1 (20 REST + uploads): [`docs/endpoints.md`](docs/endpoints.md) y Linear (**[API — Endpoints](https://linear.app/matias-sanmiguel/document/api-endpoints-11a0bc97a8f4)**).
@@ -97,14 +99,17 @@ Implementados hoy (merge en `main`; el contrato v1 está en el doc):
 
 ```text
 GET    /api/v1/properties
-POST   /api/v1/properties
+POST   /api/v1/properties                  # JWT
 GET    /api/v1/properties/{id}
-PATCH  /api/v1/properties/{id}
-DELETE /api/v1/properties/{id}
-POST   /api/v1/properties/{id}/publish
-POST   /api/v1/properties/{id}/pause
+PATCH  /api/v1/properties/{id}             # JWT · dueño
+DELETE /api/v1/properties/{id}             # JWT · dueño
+POST   /api/v1/properties/{id}/publish     # JWT · dueño
+POST   /api/v1/properties/{id}/pause       # JWT · dueño
 POST   /api/v1/properties/{id}/images      # JSON { "url" } (no multipart)
 POST   /api/v1/properties/{id}/inquiries
+POST   /api/v1/auth/register
+POST   /api/v1/auth/login
+POST   /api/v1/auth/logout                 # JWT
 GET    /api/v1/me/properties               # header X-User-Id (no JWT)
 GET    /api/v1/me/inquiries                # header X-User-Id (no JWT)
 ```
@@ -120,11 +125,12 @@ curl "http://localhost:8080/api/v1/properties?city=buenos%20aires&operation=RENT
 | Hecho | Pendiente |
 |-------|-----------|
 | CRUD avisos + filtros + PATCH | Frontend React |
-| Docker + SQL Server | Auth JWT (Busse) · `GET/PATCH /me` (Matías) |
+| Docker + SQL Server | `GET/PATCH /me` (Matías) |
 | Soft delete | Detalle/PATCH consultas · `unreadOnly` |
 | Publish / pause | Multipart fotos + servir `/uploads` |
 | POST imagen (URL) · POST consulta | Tests + Flyway + CI |
 | `GET /me/properties` · `GET /me/inquiries` (`X-User-Id`) | |
+| Auth JWT (Busse): register/login/logout + dueño en avisos | |
 
 Ver [Roadmap en Linear](https://linear.app/matias-sanmiguel/document/roadmap-3601501dc6ab) e issues **LIM-1** a **LIM-7**.
 

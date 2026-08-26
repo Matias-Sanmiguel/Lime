@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -14,11 +16,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.uade.lime.auth.model.User;
+import com.uade.lime.auth.repository.UserRepository;
+import com.uade.lime.auth.security.UserPrincipal;
 import com.uade.lime.property.dto.CreateImageRequest;
 import com.uade.lime.property.dto.CreateInquiryRequest;
 import com.uade.lime.property.dto.CreatePropertyRequest;
 import com.uade.lime.property.dto.ImageResponse;
 import com.uade.lime.property.dto.InquiryResponse;
+import com.uade.lime.property.dto.OwnerResponse;
 import com.uade.lime.property.dto.PageResponse;
 import com.uade.lime.property.dto.PropertyResponse;
 import com.uade.lime.property.dto.UpdatePropertyRequest;
@@ -40,14 +46,17 @@ public class PropertyService {
     private final PropertyRepository repository;
     private final PropertyImageRepository imageRepository;
     private final InquiryRepository inquiryRepository;
+    private final UserRepository userRepository;
 
     public PropertyService(
             PropertyRepository repository,
             PropertyImageRepository imageRepository,
-            InquiryRepository inquiryRepository) {
+            InquiryRepository inquiryRepository,
+            UserRepository userRepository) {
         this.repository = repository;
         this.imageRepository = imageRepository;
         this.inquiryRepository = inquiryRepository;
+        this.userRepository = userRepository;
     }
 
     @Transactional
@@ -95,15 +104,20 @@ public class PropertyService {
             return builder.and(predicates.toArray(Predicate[]::new));
         };
 
-        Page<PropertyResponse> result = repository.findAll(
+        Page<Property> propertyPage = repository.findAll(
                 filters,
-                PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt")))
-                .map(PropertyResponse::from);
+                PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt")));
+        Map<Long, OwnerResponse> ownersById = userRepository
+                .findAllById(propertyPage.getContent().stream().map(Property::getOwnerId).distinct().toList())
+                .stream()
+                .collect(Collectors.toMap(User::getId, OwnerResponse::from));
+        Page<PropertyResponse> result = propertyPage
+                .map(property -> PropertyResponse.from(property, ownersById.get(property.getOwnerId())));
         return PageResponse.from(result);
     }
 
     @Transactional
-    public PropertyResponse create(CreatePropertyRequest request) {
+    public PropertyResponse create(CreatePropertyRequest request, UserPrincipal owner) {
         Instant now = Instant.now();
         Property property = Property.draft(
                 request.title(),
@@ -119,14 +133,18 @@ public class PropertyService {
                 request.bathrooms(),
                 request.coveredArea(),
                 request.totalArea(),
-                1L, // TODO: reemplazar cuando exista login (owner del usuario autenticado)
+                owner.id(),
                 now);
-        return PropertyResponse.from(repository.save(property));
+        return PropertyResponse.from(repository.save(property), ownerResponseOf(owner));
     }
 
     @Transactional(readOnly = true)
     public PropertyResponse get(Long id) {
-        return PropertyResponse.from(findActive(id));
+        Property property = findActive(id);
+        OwnerResponse owner = userRepository.findById(property.getOwnerId())
+                .map(OwnerResponse::from)
+                .orElse(null);
+        return PropertyResponse.from(property, owner);
     }
 
     @Transactional(readOnly = true)
@@ -138,10 +156,11 @@ public class PropertyService {
     }
 
     @Transactional
-    public PropertyResponse update(Long id, UpdatePropertyRequest request) {
+    public PropertyResponse update(Long id, UpdatePropertyRequest request, UserPrincipal user) {
         Property property = findActive(id);
+        requireOwner(property, user.id());
         if (!hasUpdates(request)) {
-            return PropertyResponse.from(property);
+            return PropertyResponse.from(property, ownerResponseOf(user));
         }
 
         property.update(
@@ -159,12 +178,14 @@ public class PropertyService {
                 request.coveredArea() != null ? request.coveredArea() : property.getCoveredArea(),
                 request.totalArea() != null ? request.totalArea() : property.getTotalArea(),
                 Instant.now());
-        return PropertyResponse.from(property);
+        return PropertyResponse.from(property, ownerResponseOf(user));
     }
 
     @Transactional
-    public void delete(Long id) {
-        findActive(id).delete(Instant.now());
+    public void delete(Long id, Long userId) {
+        Property property = findActive(id);
+        requireOwner(property, userId);
+        property.delete(Instant.now());
     }
 
     @Transactional(readOnly = true)
@@ -197,24 +218,36 @@ public class PropertyService {
     }
 
     @Transactional
-    public PropertyResponse publish(Long id) {
+    public PropertyResponse publish(Long id, UserPrincipal user) {
         Property property = findActive(id);
+        requireOwner(property, user.id());
         PropertyStatus current = property.getStatus();
         if (current != PropertyStatus.DRAFT && current != PropertyStatus.PAUSED) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Cannot publish a property in status " + current);
         }
         property.publish(Instant.now());
-        return PropertyResponse.from(property);
+        return PropertyResponse.from(property, ownerResponseOf(user));
     }
 
     @Transactional
-    public PropertyResponse pause(Long id) {
+    public PropertyResponse pause(Long id, UserPrincipal user) {
         Property property = findActive(id);
+        requireOwner(property, user.id());
         if (property.getStatus() != PropertyStatus.PUBLISHED) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Cannot pause a property in status " + property.getStatus());
         }
         property.pause(Instant.now());
-        return PropertyResponse.from(property);
+        return PropertyResponse.from(property, ownerResponseOf(user));
+    }
+
+    private void requireOwner(Property property, Long userId) {
+        if (!property.getOwnerId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not the owner of this property");
+        }
+    }
+
+    private OwnerResponse ownerResponseOf(UserPrincipal user) {
+        return new OwnerResponse(user.id(), user.name(), user.role(), user.agencyName());
     }
 
     private boolean hasUpdates(UpdatePropertyRequest request) {

@@ -15,15 +15,15 @@ Actualizado: 26 ago 2026. Contrato v1: **20 REST + `GET /uploads/**`**. El detal
 | # | Estado | Método | Ruta | Auth hoy | Dueño | Issue |
 |---|--------|--------|------|----------|-------|-------|
 | 1 | Hecho | `GET` | `/properties` | Público | — | LIM-1 |
-| 2 | Hecho | `POST` | `/properties` | Público (`ownerId` fijo `1`) | — / Facu | LIM-1 |
+| 2 | Hecho | `POST` | `/properties` | JWT | — / Facu | LIM-1 |
 | 3 | Hecho | `GET` | `/properties/{id}` | Público (cualquier estado no borrado) | — | LIM-1 |
-| 4 | Hecho | `DELETE` | `/properties/{id}` | Público | — | LIM-1 |
-| 5 | Hecho | `PATCH` | `/properties/{id}` | Público | Augusto | LIM-3 |
-| 6 | Hecho | `POST` | `/properties/{id}/publish` | Público | Lucas | LIM-3 |
-| 7 | Hecho | `POST` | `/properties/{id}/pause` | Público | Lucas | LIM-3 |
-| 8 | Pendiente | `POST` | `/auth/register` | — | Busse | LIM-2 |
-| 9 | Pendiente | `POST` | `/auth/login` | — | Busse | LIM-2 |
-| 10 | Pendiente | `POST` | `/auth/logout` | — | Busse | LIM-2 |
+| 4 | Hecho | `DELETE` | `/properties/{id}` | JWT · dueño | — | LIM-1 |
+| 5 | Hecho | `PATCH` | `/properties/{id}` | JWT · dueño | Augusto | LIM-3 |
+| 6 | Hecho | `POST` | `/properties/{id}/publish` | JWT · dueño | Lucas | LIM-3 |
+| 7 | Hecho | `POST` | `/properties/{id}/pause` | JWT · dueño | Lucas | LIM-3 |
+| 8 | Hecho | `POST` | `/auth/register` | Público | Busse | LIM-2 |
+| 9 | Hecho | `POST` | `/auth/login` | Público | Busse | LIM-2 |
+| 10 | Hecho | `POST` | `/auth/logout` | JWT | Busse | LIM-2 |
 | 11 | Pendiente | `GET` | `/me` | — | Matías | LIM-2 |
 | 12 | Pendiente | `PATCH` | `/me` | — | Matías | LIM-2 |
 | 13 | Hecho (parcial) | `GET` | `/me/properties` | Header `X-User-Id` (no JWT) | Facu | LIM-2 |
@@ -38,7 +38,7 @@ Actualizado: 26 ago 2026. Contrato v1: **20 REST + `GET /uploads/**`**. El detal
 
 ### Gaps vs este contrato (lo que falta cerrar)
 
-* **Busse / Matías:** no hay JWT ni `GET/PATCH /me`. Nico: inbox es lista (`X-User-Id`), sin paginación, `unreadOnly` ni detalle/PATCH.
+* **Matías:** no hay `GET/PATCH /me` todavía (ya puede usar JWT). Nico: inbox es lista (`X-User-Id`), sin paginación, `unreadOnly` ni detalle/PATCH.
 * **Lucas:** publish no valida mínimos (`title`, `price`, `operation`, `city`). El listado público sigue mostrando DRAFT/PAUSED. No hay query `province` / `minBedrooms` / `minBathrooms`.
 * **Lola:** no es multipart ni hay `sortOrder` / PATCH / DELETE / static files. `ImageResponse` es `{ id, url, createdAt }`.
 * **Micaela:** no exige `PUBLISHED`. No hay `readAt` ni `propertyTitle`.
@@ -654,11 +654,11 @@ Responder la consulta es por mail del visitante. No hay endpoint de reply.
 
 ## Checklist por persona
 
-1. **Matías** — LIM-1 (CRUD, mergeado) + `#11 GET /me` + `#12 PATCH /me` **pendiente**. Depende del JWT de Busse.
-2. **Augusto** — `#5 PATCH` **mergeado** (aún público, sin JWT).
-3. **Lucas** — `#6 publish` + `#7 pause` **mergeado**. Falta listado solo `PUBLISHED` y query `province` / `minBedrooms` / `minBathrooms`.
-4. **Busse** — `#8 #9 #10` **sin branch**. JWT, bcrypt, dueño, `owner` en PropertyResponse.
-5. **Facu** — `#13 GET /me/properties` **mergeado** con `X-User-Id`. Falta JWT y paginación.
+1. **Matías** — LIM-1 (CRUD, mergeado) + `#11 GET /me` + `#12 PATCH /me` **pendiente**. JWT de Busse ya disponible.
+2. **Augusto** — `#5 PATCH` **mergeado**, ahora JWT · dueño (403 si no sos el dueño).
+3. **Lucas** — `#6 publish` + `#7 pause` **mergeado**, ahora JWT · dueño. Falta listado solo `PUBLISHED` y query `province` / `minBedrooms` / `minBathrooms`.
+4. **Busse** — `#8 #9 #10` **mergeado**. JWT (jjwt, HS256, 24h), bcrypt, denylist de logout en tabla, `owner` en PropertyResponse, dueño real al crear aviso, 403 en PATCH/DELETE/publish/pause ajenos.
+5. **Facu** — `#13 GET /me/properties` **mergeado** con `X-User-Id`. Falta migrar a JWT (ya disponible) y paginación.
 6. **Lola** — `#14 POST images` **mergeado** (JSON `url`). Falta `#15 #16` y `/uploads/**`.
 7. **Micaela** — `#17 POST inquiries` **mergeado**. Falta exigir `PUBLISHED`.
 8. **Nico** — `#18 GET /me/inquiries` **mergeado** con `X-User-Id`. Faltan `#19 #20`, JWT y `unreadOnly`.

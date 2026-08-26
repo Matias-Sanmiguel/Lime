@@ -5,6 +5,7 @@ import java.net.URI;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.uade.lime.auth.security.UserPrincipal;
 import com.uade.lime.property.dto.CreateImageRequest;
 import com.uade.lime.property.dto.CreateInquiryRequest;
 import com.uade.lime.property.dto.CreatePropertyRequest;
@@ -59,8 +61,10 @@ public class PropertyController {
     }
 
     @PostMapping
-    public ResponseEntity<PropertyResponse> create(@Valid @RequestBody CreatePropertyRequest request) {
-        PropertyResponse created = service.create(request);
+    public ResponseEntity<PropertyResponse> create(
+            @Valid @RequestBody CreatePropertyRequest request,
+            @AuthenticationPrincipal UserPrincipal user) {
+        PropertyResponse created = service.create(request, user);
         return ResponseEntity.created(URI.create("/api/v1/properties/" + created.id())).body(created);
     }
 
@@ -76,24 +80,27 @@ public class PropertyController {
     }
 
     @PatchMapping("/{id}")
-    public PropertyResponse update(@PathVariable Long id, @Valid @RequestBody UpdatePropertyRequest request) {
-        return service.update(id, request);
+    public PropertyResponse update(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdatePropertyRequest request,
+            @AuthenticationPrincipal UserPrincipal user) {
+        return service.update(id, request, user);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        service.delete(id);
+    public ResponseEntity<Void> delete(@PathVariable Long id, @AuthenticationPrincipal UserPrincipal user) {
+        service.delete(id, user.id());
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{id}/publish")
-    public PropertyResponse publish(@PathVariable Long id) {
-        return service.publish(id);
+    public PropertyResponse publish(@PathVariable Long id, @AuthenticationPrincipal UserPrincipal user) {
+        return service.publish(id, user);
     }
 
     @PostMapping("/{id}/pause")
-    public PropertyResponse pause(@PathVariable Long id) {
-        return service.pause(id);
+    public PropertyResponse pause(@PathVariable Long id, @AuthenticationPrincipal UserPrincipal user) {
+        return service.pause(id, user);
     }
 
     @PostMapping("/{id}/inquiries")
