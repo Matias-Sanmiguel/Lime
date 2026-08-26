@@ -31,14 +31,14 @@ Actualizado: 26 ago 2026. Contrato v1: **20 REST + `GET /uploads/**`**. El detal
 | 15 | Pendiente | `PATCH` | `/properties/{id}/images/{imageId}` | — | Lola | LIM-4 |
 | 16 | Pendiente | `DELETE` | `/properties/{id}/images/{imageId}` | — | Lola | LIM-4 |
 | 17 | Hecho (parcial) | `POST` | `/properties/{id}/inquiries` | Público · también en DRAFT | Micaela | LIM-4 |
-| 18 | Pendiente | `GET` | `/me/inquiries` | — | Nico | LIM-4 |
+| 18 | Hecho (parcial) | `GET` | `/me/inquiries` | Header `X-User-Id` (no JWT) | Nico | LIM-4 |
 | 19 | Pendiente | `GET` | `/me/inquiries/{inquiryId}` | — | Nico | LIM-4 |
 | 20 | Pendiente | `PATCH` | `/me/inquiries/{inquiryId}` | — | Nico | LIM-4 |
 | — | Pendiente | `GET` | `/uploads/**` | — | Lola | LIM-4 |
 
 ### Gaps vs este contrato (lo que falta cerrar)
 
-* **Busse / Matías / Nico:** no pushearon. No hay JWT, `GET/PATCH /me`, ni inbox de consultas.
+* **Busse / Matías:** no hay JWT ni `GET/PATCH /me`. Nico: inbox es lista (`X-User-Id`), sin paginación, `unreadOnly` ni detalle/PATCH.
 * **Lucas:** publish no valida mínimos (`title`, `price`, `operation`, `city`). El listado público sigue mostrando DRAFT/PAUSED. No hay query `province` / `minBedrooms` / `minBathrooms`.
 * **Lola:** no es multipart ni hay `sortOrder` / PATCH / DELETE / static files. `ImageResponse` es `{ id, url, createdAt }`.
 * **Micaela:** no exige `PUBLISHED`. No hay `readAt` ni `propertyTitle`.
@@ -661,6 +661,6 @@ Responder la consulta es por mail del visitante. No hay endpoint de reply.
 5. **Facu** — `#13 GET /me/properties` **mergeado** con `X-User-Id`. Falta JWT y paginación.
 6. **Lola** — `#14 POST images` **mergeado** (JSON `url`). Falta `#15 #16` y `/uploads/**`.
 7. **Micaela** — `#17 POST inquiries` **mergeado**. Falta exigir `PUBLISHED`.
-8. **Nico** — `#18 #19 #20` **sin branch**.
+8. **Nico** — `#18 GET /me/inquiries` **mergeado** con `X-User-Id`. Faltan `#19 #20`, JWT y `unreadOnly`.
 
 Dependencias: Matías, Facu y Nico → JWT (Busse). Nico → Inquiry (Micaela). Micaela → avisos publicados (Lucas). Lola → dueño en el aviso (Busse) para el `403`.

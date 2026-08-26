@@ -167,6 +167,13 @@ public class PropertyService {
         findActive(id).delete(Instant.now());
     }
 
+    @Transactional(readOnly = true)
+    public List<InquiryResponse> listMyInquiries(Long ownerId) {
+        return inquiryRepository.findByPropertyOwnerId(ownerId).stream()
+                .map(InquiryResponse::from)
+                .toList();
+    }
+
     @Transactional
     public InquiryResponse createInquiry(Long propertyId, CreateInquiryRequest request) {
         Property property = findActive(propertyId);
