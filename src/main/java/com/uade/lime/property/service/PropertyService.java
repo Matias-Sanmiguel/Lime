@@ -119,6 +119,7 @@ public class PropertyService {
                 request.bathrooms(),
                 request.coveredArea(),
                 request.totalArea(),
+                1L, // TODO: reemplazar cuando exista login (owner del usuario autenticado)
                 now);
         return PropertyResponse.from(repository.save(property));
     }
@@ -126,6 +127,14 @@ public class PropertyService {
     @Transactional(readOnly = true)
     public PropertyResponse get(Long id) {
         return PropertyResponse.from(findActive(id));
+    }
+
+    @Transactional(readOnly = true)
+    public List<PropertyResponse> listMine(Long ownerId) {
+        return repository.findByOwnerIdAndDeletedAtIsNull(ownerId)
+            .stream()
+            .map(PropertyResponse::from)
+            .toList();
     }
 
     @Transactional

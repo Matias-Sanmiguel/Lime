@@ -64,6 +64,9 @@ public class Property {
     @Column(precision = 10, scale = 2)
     private BigDecimal totalArea;
 
+    @Column(name = "owner_id")
+    private Long ownerId;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private PropertyStatus status;
@@ -90,6 +93,7 @@ public class Property {
             Integer bathrooms,
             BigDecimal coveredArea,
             BigDecimal totalArea,
+            Long ownerID,
             Instant now) {
         Property property = new Property();
         property.title = title;
@@ -105,6 +109,7 @@ public class Property {
         property.bathrooms = bathrooms;
         property.coveredArea = coveredArea;
         property.totalArea = totalArea;
+        property.ownerId = ownerID;
         property.status = PropertyStatus.DRAFT;
         property.createdAt = now;
         property.updatedAt = now;
