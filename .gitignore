@@ -33,3 +33,4 @@ build/
 ### VS Code / Cursor (workspace compartido) ###
 # .vscode/ se commitea para el equipo
 .cursor/
+.vscode
