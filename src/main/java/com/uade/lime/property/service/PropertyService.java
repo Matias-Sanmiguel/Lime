@@ -12,6 +12,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.uade.lime.property.dto.CreateImageRequest;
@@ -26,6 +27,7 @@ import com.uade.lime.property.model.PropertyStatus;
 import com.uade.lime.property.model.PropertyType;
 import com.uade.lime.property.repository.PropertyImageRepository;
 import com.uade.lime.property.repository.PropertyRepository;
+import com.uade.lime.property.storage.FileStorageService;
 
 import jakarta.persistence.criteria.Predicate;
 
@@ -34,21 +36,26 @@ public class PropertyService {
 
     private final PropertyRepository repository;
     private final PropertyImageRepository imageRepository;
+    private final FileStorageService fileStorageService; // nuevo
 
-    //cambie el constructor para que la propiedad de se cree con imagenes
-    public PropertyService(PropertyRepository repository, PropertyImageRepository imageRepository) {
-    this.repository = repository;
-    this.imageRepository = imageRepository;
+    public PropertyService(PropertyRepository repository, PropertyImageRepository imageRepository,
+            FileStorageService fileStorageService) {
+        this.repository = repository;
+        this.imageRepository = imageRepository;
+        this.fileStorageService = fileStorageService;
     }
 
-    public ImageResponse addImage(Long propertyId, CreateImageRequest request) {
-    Property property = repository.findByIdAndDeletedAtIsNull(propertyId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Property not found"));
+    public ImageResponse addImage(Long propertyId, MultipartFile file) {
+        Property property = repository.findByIdAndDeletedAtIsNull(propertyId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Property not found"));
 
-    PropertyImage image = PropertyImage.of(property, request.url(), Instant.now());
-    PropertyImage saved = imageRepository.save(image);
+        String filename = fileStorageService.store(file);
+        String url = "/uploads/" + filename;
 
-    return ImageResponse.from(saved);
+        PropertyImage image = PropertyImage.of(property, url, Instant.now());
+        PropertyImage saved = imageRepository.save(image);
+
+        return ImageResponse.from(saved);
     }
 
     @Transactional(readOnly = true)
@@ -134,5 +141,27 @@ public class PropertyService {
 
     private String normalizeCurrency(String currency) {
         return currency == null ? null : currency.trim().toUpperCase();
+    }
+
+    public void deleteImage(Long propertyId, Long imageId) {
+        PropertyImage image = imageRepository.findByIdAndPropertyId(imageId, propertyId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Image not found"));
+
+        String filename = image.getUrl().substring(image.getUrl().lastIndexOf('/') + 1);
+        fileStorageService.delete(filename);
+        imageRepository.delete(image);
+    }
+
+    public ImageResponse replaceImage(Long propertyId, Long imageId, MultipartFile file) {
+        PropertyImage image = imageRepository.findByIdAndPropertyId(imageId, propertyId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Image not found"));
+
+        String oldFilename = image.getUrl().substring(image.getUrl().lastIndexOf('/') + 1);
+        String newFilename = fileStorageService.store(file);
+
+        image.replaceUrl("/uploads/" + newFilename, Instant.now());
+        PropertyImage saved = imageRepository.save(image);
+
+        fileStorageService.delete(oldFilename);
+
+        return ImageResponse.from(saved);
     }
 }

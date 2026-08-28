@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.PatchMapping;
 
 import com.uade.lime.property.dto.CreateImageRequest;
 import com.uade.lime.property.dto.CreatePropertyRequest;
@@ -60,9 +63,11 @@ public class PropertyController {
         return ResponseEntity.created(URI.create("/api/v1/properties/" + created.id())).body(created);
     }
 
-    @PostMapping("/{id}/images")
-    public ResponseEntity<ImageResponse> addImage(@PathVariable Long id, @Valid @RequestBody CreateImageRequest request) {
-        ImageResponse created = service.addImage(id, request);
+    @PostMapping(value = "/{id}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ImageResponse> addImage(
+            @PathVariable Long id,
+            @RequestParam("file") MultipartFile file) {
+        ImageResponse created = service.addImage(id, file);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
@@ -75,5 +80,17 @@ public class PropertyController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{id}/images/{imageId}")
+    public ResponseEntity<Void> deleteImage(@PathVariable Long id, @PathVariable Long imageId) {
+        service.deleteImage(id, imageId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping(value = "/{id}/images/{imageId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ImageResponse> replaceImage(@PathVariable Long id, @PathVariable Long imageId, @RequestParam("file") MultipartFile file) {
+        ImageResponse updated = service.replaceImage(id, imageId, file);
+        return ResponseEntity.ok(updated);
     }
 }

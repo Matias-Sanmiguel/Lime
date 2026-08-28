@@ -34,11 +34,20 @@ public class PropertyImage {
     @Column(nullable = false)
     private Instant createdAt;
 
+    @Column(nullable = false)
+    private Instant updatedAt;
+
     public static PropertyImage of(Property property, String url, Instant now) {
         PropertyImage image = new PropertyImage();
         image.property = property;
         image.url = url;
         image.createdAt = now;
+        image.updatedAt = now; // nuevo
         return image;
+    }
+
+    public void replaceUrl(String url, Instant now) {
+        this.url = url;
+        this.updatedAt = now;
     }
 }
