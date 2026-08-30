@@ -25,7 +25,6 @@ import com.uade.lime.property.dto.PageResponse;
 import com.uade.lime.property.dto.PropertyResponse;
 import com.uade.lime.property.dto.UpdatePropertyRequest;
 import com.uade.lime.property.model.OperationType;
-import com.uade.lime.property.model.PropertyStatus;
 import com.uade.lime.property.model.PropertyType;
 import com.uade.lime.property.service.PropertyService;
 
@@ -46,26 +45,27 @@ public class PropertyController {
     }
 
     @GetMapping
-    public PageResponse<PropertyResponse> list(
-            @RequestParam(defaultValue = "0") @Min(0) int page,
+    public PageResponse<PropertyResponse> list(@RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size,
             @RequestParam(required = false) String city,
             @RequestParam(required = false) PropertyType type,
             @RequestParam(required = false) OperationType operation,
-            @RequestParam(required = false) PropertyStatus status,
             @RequestParam(required = false) @PositiveOrZero BigDecimal minPrice,
             @RequestParam(required = false) @PositiveOrZero BigDecimal maxPrice) {
-        return service.list(page, size, city, type, operation, status, minPrice, maxPrice);
+        return service.list(page, size, city, type, operation, minPrice, maxPrice);
     }
 
     @PostMapping
-    public ResponseEntity<PropertyResponse> create(@Valid @RequestBody CreatePropertyRequest request) {
+    public ResponseEntity<PropertyResponse> create(
+            @Valid @RequestBody CreatePropertyRequest request) {
         PropertyResponse created = service.create(request);
-        return ResponseEntity.created(URI.create("/api/v1/properties/" + created.id())).body(created);
+        return ResponseEntity.created(URI.create("/api/v1/properties/" + created.id()))
+                .body(created);
     }
 
     @PostMapping("/{id}/images")
-    public ResponseEntity<ImageResponse> addImage(@PathVariable Long id, @Valid @RequestBody CreateImageRequest request) {
+    public ResponseEntity<ImageResponse> addImage(@PathVariable Long id,
+            @Valid @RequestBody CreateImageRequest request) {
         ImageResponse created = service.addImage(id, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
@@ -76,7 +76,8 @@ public class PropertyController {
     }
 
     @PatchMapping("/{id}")
-    public PropertyResponse update(@PathVariable Long id, @Valid @RequestBody UpdatePropertyRequest request) {
+    public PropertyResponse update(@PathVariable Long id,
+            @Valid @RequestBody UpdatePropertyRequest request) {
         return service.update(id, request);
     }
 
@@ -97,8 +98,7 @@ public class PropertyController {
     }
 
     @PostMapping("/{id}/inquiries")
-    public ResponseEntity<InquiryResponse> createInquiry(
-            @PathVariable Long id,
+    public ResponseEntity<InquiryResponse> createInquiry(@PathVariable Long id,
             @Valid @RequestBody CreateInquiryRequest request) {
         InquiryResponse created = service.createInquiry(id, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
