@@ -148,11 +148,63 @@ public class PropertyService {
     }
 
     @Transactional(readOnly = true)
-    public List<PropertyResponse> listMine(Long ownerId) {
-        return repository.findByOwnerIdAndDeletedAtIsNull(ownerId)
-            .stream()
-            .map(PropertyResponse::from)
-            .toList();
+    public PageResponse<PropertyResponse> listMine(
+            UserPrincipal user,
+            int page,
+            int size,
+            String city,
+            PropertyType type,
+            OperationType operation,
+            PropertyStatus status,
+            BigDecimal minPrice,
+            BigDecimal maxPrice,
+            String province,
+            Integer minBedrooms,
+            Integer minBathrooms) {
+        if (minPrice != null && maxPrice != null && minPrice.compareTo(maxPrice) > 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "minPrice cannot be greater than maxPrice");
+        }
+
+        Specification<Property> filters = (root, query, builder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(builder.isNull(root.get("deletedAt")));
+            predicates.add(builder.equal(root.get("ownerId"), user.id()));
+            if (city != null && !city.isBlank()) {
+                predicates.add(builder.equal(builder.lower(root.get("city")), city.trim().toLowerCase()));
+            }
+            if (type != null) {
+                predicates.add(builder.equal(root.get("type"), type));
+            }
+            if (operation != null) {
+                predicates.add(builder.equal(root.get("operation"), operation));
+            }
+            if (status != null) {
+                predicates.add(builder.equal(root.get("status"), status));
+            }
+            if (minPrice != null) {
+                predicates.add(builder.greaterThanOrEqualTo(root.get("price"), minPrice));
+            }
+            if (maxPrice != null) {
+                predicates.add(builder.lessThanOrEqualTo(root.get("price"), maxPrice));
+            }
+            if (province != null && !province.isBlank()) {
+                predicates.add(builder.equal(builder.lower(root.get("province")), province.trim().toLowerCase()));
+            }
+            if (minBedrooms != null) {
+                predicates.add(builder.greaterThanOrEqualTo(root.get("bedrooms"), minBedrooms));
+            }
+            if (minBathrooms != null) {
+                predicates.add(builder.greaterThanOrEqualTo(root.get("bathrooms"), minBathrooms));
+            }
+            return builder.and(predicates.toArray(Predicate[]::new));
+        };
+
+        Page<Property> propertyPage = repository.findAll(
+                filters,
+                PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt")));
+        OwnerResponse owner = ownerResponseOf(user);
+        Page<PropertyResponse> result = propertyPage.map(property -> PropertyResponse.from(property, owner));
+        return PageResponse.from(result);
     }
 
     @Transactional
