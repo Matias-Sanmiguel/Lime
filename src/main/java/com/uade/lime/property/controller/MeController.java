@@ -2,6 +2,7 @@ package com.uade.lime.property.controller;
 
 import java.util.List;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.uade.lime.auth.security.UserPrincipal;
 import com.uade.lime.property.dto.PropertyResponse;
 import com.uade.lime.property.service.PropertyService;
 import com.uade.lime.user.dto.UpdateMeRequest;
@@ -35,14 +37,14 @@ public class MeController {
     }
 
     @GetMapping
-    public UserResponse me(@RequestHeader("X-User-Id") Long userId) {
-        return userService.getMe(userId);
+    public UserResponse me(@AuthenticationPrincipal UserPrincipal user) {
+        return userService.getMe(user.id());
     }
 
     @PatchMapping
     public UserResponse updateMe(
-            @RequestHeader("X-User-Id") Long userId,
+            @AuthenticationPrincipal UserPrincipal user,
             @Valid @RequestBody UpdateMeRequest request) {
-        return userService.updateMe(userId, request);
+        return userService.updateMe(user.id(), request);
     }
 }
