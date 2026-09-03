@@ -61,14 +61,14 @@ public class MeController {
     }
 
     @GetMapping
-    public UserResponse me(@RequestHeader("X-User-Id") Long userId) {
-        return userService.getMe(userId);
+    public UserResponse me(@AuthenticationPrincipal UserPrincipal user) {
+        return userService.getMe(user.id());
     }
 
     @PatchMapping
     public UserResponse updateMe(
-            @RequestHeader("X-User-Id") Long userId,
+            @AuthenticationPrincipal UserPrincipal user,
             @Valid @RequestBody UpdateMeRequest request) {
-        return userService.updateMe(userId, request);
+        return userService.updateMe(user.id(), request);
     }
 }

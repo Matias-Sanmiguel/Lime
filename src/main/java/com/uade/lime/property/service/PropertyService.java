@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -19,6 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.uade.lime.auth.model.User;
 import com.uade.lime.auth.repository.UserRepository;
 import com.uade.lime.auth.security.UserPrincipal;
+import com.uade.lime.common.exception.RecursoNoEncontradoException;
 import com.uade.lime.property.dto.CreateImageRequest;
 import com.uade.lime.property.dto.CreateInquiryRequest;
 import com.uade.lime.property.dto.CreatePropertyRequest;
@@ -60,10 +62,12 @@ public class PropertyService {
     }
 
     @Transactional
-    public ImageResponse addImage(Long propertyId, CreateImageRequest request) {
-        Property property = findActive(propertyId);
-        PropertyImage image = PropertyImage.of(property, request.url(), Instant.now());
-        return ImageResponse.from(imageRepository.save(image));
+    public Optional<ImageResponse> addImage(Long propertyId, CreateImageRequest request) {
+    return repository.findByIdAndDeletedAtIsNull(propertyId)
+            .map(property -> {
+                PropertyImage image = PropertyImage.of(property, request.url(), Instant.now());
+                return ImageResponse.from(imageRepository.save(image));
+            });
     }
 
     @Transactional(readOnly = true)
@@ -262,7 +266,7 @@ public class PropertyService {
 
     private Property findActive(Long id) {
         return repository.findByIdAndDeletedAtIsNull(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Property not found"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Property not found"));
     }
 
     private String normalizeCurrency(String currency) {

@@ -5,6 +5,8 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.uade.lime.common.exception.RecursoNoEncontradoException;
+
 import jakarta.validation.ConstraintViolationException;
 
 @RestControllerAdvice
@@ -17,5 +19,10 @@ public class ApiExceptionHandler {
                 exception.getMessage());
         problem.setTitle("Invalid request parameters");
         return problem;
+    }
+
+    @ExceptionHandler(RecursoNoEncontradoException.class)
+    public ProblemDetail handleRecursoNoEncontrado(RecursoNoEncontradoException exception) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());
     }
 }
