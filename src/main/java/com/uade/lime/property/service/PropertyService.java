@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -61,10 +62,12 @@ public class PropertyService {
     }
 
     @Transactional
-    public ImageResponse addImage(Long propertyId, CreateImageRequest request) {
-        Property property = findActive(propertyId);
-        PropertyImage image = PropertyImage.of(property, request.url(), Instant.now());
-        return ImageResponse.from(imageRepository.save(image));
+    public Optional<ImageResponse> addImage(Long propertyId, CreateImageRequest request) {
+    return repository.findByIdAndDeletedAtIsNull(propertyId)
+            .map(property -> {
+                PropertyImage image = PropertyImage.of(property, request.url(), Instant.now());
+                return ImageResponse.from(imageRepository.save(image));
+            });
     }
 
     @Transactional(readOnly = true)
