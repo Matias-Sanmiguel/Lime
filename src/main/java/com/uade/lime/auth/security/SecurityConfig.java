@@ -43,10 +43,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/properties", "/api/v1/properties/{id}").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/register", "/api/v1/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/properties/{id}/inquiries").permitAll()
-                        // Estos tres todavía son stands-in con X-User-Id o sin dueño (Facu #13,
-                        // Nico #18, Lola #14 — LIM-2/LIM-4 sin cerrar). Sacar cada línea cuando
-                        // ese endpoint migre a JWT (y, en el de Lola, sume chequeo de dueño).
-                        .requestMatchers(HttpMethod.GET, "/api/v1/me/properties", "/api/v1/me/inquiries").permitAll()
+                        // Facu (#13) ya migrado a JWT. Nico (#18) sigue pendiente con X-User-Id.
+                        .requestMatchers(HttpMethod.GET, "/api/v1/me/inquiries").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/properties/{id}/images").permitAll()
                         // GET /uploads/** (LIM-4, Lola) se suma acá cuando exista ese endpoint.
                         .anyRequest().authenticated())
