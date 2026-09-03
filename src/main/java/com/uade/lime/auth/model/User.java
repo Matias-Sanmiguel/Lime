@@ -64,4 +64,19 @@ public class User {
         user.updatedAt = now;
         return user;
     }
+
+    public void updateProfile(String name, String agencyName, Instant now) {
+        if (name != null) {
+            this.name = name;
+        }
+        if (agencyName != null && role == UserRole.AGENCY) {
+            this.agencyName = agencyName;
+        }
+        this.updatedAt = now;
+    }
+
+    public void changePassword(String passwordHash, Instant now) {
+        this.passwordHash = passwordHash;
+        this.updatedAt = now;
+    }
 }
