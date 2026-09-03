@@ -1,27 +1,65 @@
 package com.uade.lime.property.controller;
 
-import java.util.List;
+import com.uade.lime.property.model.Inquiry;
+import com.uade.lime.property.repository.InquiryRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.uade.lime.property.dto.InquiryResponse;
-import com.uade.lime.property.service.PropertyService;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/v1/me/inquiries")
 public class InquiryController {
-
-    private final PropertyService service;
-
-    public InquiryController(PropertyService service) {
-        this.service = service;
-    }
+    
+    @Autowired
+    private InquiryRepository inquiryRepository;
 
     @GetMapping
-    public List<InquiryResponse> listMine(@RequestHeader("X-User-Id") Long ownerId) {
-        return service.listMyInquiries(ownerId);
+    public ResponseEntity<Page<Inquiry>> getMyInquiries(
+            @RequestHeader("X-User-Id") Long userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Inquiry> inquiries = inquiryRepository.findByPropertyOwnerIdOrderByCreatedAtDesc(userId, pageable);
+        return ResponseEntity.ok(inquiries);
     }
-}
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Inquiry> getInquiryDetail(
+            @RequestHeader("X-User-Id") Long userId,
+            @PathVariable Long id
+    ) {
+        Inquiry inquiry = inquiryRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Consulta no encontrada"));
+
+        if (!inquiry.getProperty().getOwnerId().getId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permisos para ver esta consulta");
+        }
+
+        return ResponseEntity.ok(inquiry);
+    }
+
+    @PatchMapping("/{id}/read")
+    public ResponseEntity<Inquiry> markAsRead(
+            @RequestHeader("X-User-Id") Long userId,
+            @PathVariable Long id
+    ) {
+        Inquiry inquiry = inquiryRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Consulta no encontrada"));
+
+        if (!inquiry.getProperty().getOwnerId().getId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permisos para marcar esta consulta como leída");
+        }
+
+        inquiry.setReadAt(LocalDateTime.now());
+        Inquiry savedInquiry = inquiryRepository.save(inquiry);
+
+        return ResponseEntity.ok(savedInquiry);
+    }
