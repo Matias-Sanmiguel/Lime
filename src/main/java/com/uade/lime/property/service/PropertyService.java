@@ -70,7 +70,7 @@ public class PropertyService {
             });
     }
 
-    @Transactional(readOnly = true)
+        @Transactional(readOnly = true)
     public PageResponse<PropertyResponse> list(
             int page,
             int size,
@@ -79,7 +79,10 @@ public class PropertyService {
             OperationType operation,
             PropertyStatus status,
             BigDecimal minPrice,
-            BigDecimal maxPrice) {
+            BigDecimal maxPrice,
+            String province,
+            Integer minBedrooms,
+            Integer minBathrooms) {
         if (minPrice != null && maxPrice != null && minPrice.compareTo(maxPrice) > 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "minPrice cannot be greater than maxPrice");
         }
@@ -104,6 +107,15 @@ public class PropertyService {
             }
             if (maxPrice != null) {
                 predicates.add(builder.lessThanOrEqualTo(root.get("price"), maxPrice));
+            }
+            if (province != null && !province.isBlank()) {
+                predicates.add(builder.equal(builder.lower(root.get("province")), province.trim().toLowerCase()));
+            }
+            if (minBedrooms != null) {
+                predicates.add(builder.greaterThanOrEqualTo(root.get("bedrooms"), minBedrooms));
+            }
+            if (minBathrooms != null) {
+                predicates.add(builder.greaterThanOrEqualTo(root.get("bathrooms"), minBathrooms));
             }
             return builder.and(predicates.toArray(Predicate[]::new));
         };
