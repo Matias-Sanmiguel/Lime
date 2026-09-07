@@ -1,6 +1,7 @@
 package com.uade.lime.auth.model;
 
 import java.time.Instant;
+import java.time.LocalDate;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -41,6 +42,13 @@ public class User {
     @Column(name = "agency_name", length = 150)
     private String agencyName;
 
+    @Column(name = "birth_date", nullable = false)
+    private LocalDate birthDate;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private Sex sex;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -53,6 +61,8 @@ public class User {
             String name,
             UserRole role,
             String agencyName,
+            LocalDate birthDate,
+            Sex sex,
             Instant now) {
         User user = new User();
         user.email = email;
@@ -60,6 +70,8 @@ public class User {
         user.name = name;
         user.role = role;
         user.agencyName = agencyName;
+        user.birthDate = birthDate;
+        user.sex = sex;
         user.createdAt = now;
         user.updatedAt = now;
         return user;
