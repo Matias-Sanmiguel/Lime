@@ -256,9 +256,8 @@ public class PropertyService {
         Property property = findActive(propertyId);
 
         if (property.getStatus() != PropertyStatus.PUBLISHED) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Property not found");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Property is not published, cannot receive inquiries");       
         }
-
         Inquiry inquiry = Inquiry.create(
                 property,
                 request.name(),
