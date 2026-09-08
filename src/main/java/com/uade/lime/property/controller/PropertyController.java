@@ -16,9 +16,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.MediaType;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.uade.lime.auth.security.UserPrincipal;
-import com.uade.lime.property.dto.CreateImageRequest;
 import com.uade.lime.property.dto.CreateInquiryRequest;
 import com.uade.lime.property.dto.CreatePropertyRequest;
 import com.uade.lime.property.dto.ImageResponse;
@@ -30,6 +31,7 @@ import com.uade.lime.property.model.OperationType;
 import com.uade.lime.property.model.PropertyStatus;
 import com.uade.lime.property.model.PropertyType;
 import com.uade.lime.property.service.PropertyService;
+
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -68,11 +70,32 @@ public class PropertyController {
         return ResponseEntity.created(URI.create("/api/v1/properties/" + created.id())).body(created);
     }
 
-    @PostMapping("/{id}/images")
-    public ResponseEntity<ImageResponse> addImage(@PathVariable Long id, @Valid @RequestBody CreateImageRequest request) {
-    return service.addImage(id, request)
-            .map(image -> ResponseEntity.status(HttpStatus.CREATED).body(image))
-            .orElseGet(() -> ResponseEntity.notFound().build());
+    @PostMapping(value = "/{id}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ImageResponse> addImage(
+            @PathVariable Long id,
+            @RequestParam("file") MultipartFile file,
+            @AuthenticationPrincipal UserPrincipal user) {
+        ImageResponse created = service.addImage(id, file, user);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    @PatchMapping(value = "/{id}/images/{imageId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ImageResponse> replaceImage(
+            @PathVariable Long id,
+            @PathVariable Long imageId,
+            @RequestParam("file") MultipartFile file,
+            @AuthenticationPrincipal UserPrincipal user) {
+        ImageResponse updated = service.replaceImage(id, imageId, file, user);
+        return ResponseEntity.ok(updated);
+    }
+
+    @DeleteMapping("/{id}/images/{imageId}")
+    public ResponseEntity<Void> deleteImage(
+            @PathVariable Long id,
+            @PathVariable Long imageId,
+            @AuthenticationPrincipal UserPrincipal user) {
+        service.deleteImage(id, imageId, user);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}")
