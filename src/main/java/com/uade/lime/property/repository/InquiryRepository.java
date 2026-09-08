@@ -1,6 +1,7 @@
 package com.uade.lime.property.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,5 +16,31 @@ public interface InquiryRepository extends JpaRepository<Inquiry, Long> {
     @Query("SELECT i FROM Inquiry i JOIN FETCH i.property p WHERE p.ownerId = :ownerId ORDER BY i.createdAt DESC")
     List<Inquiry> findByPropertyOwnerId(@Param("ownerId") Long ownerId);
 
-    Page<Inquiry> findByPropertyOwnerIdOrderByCreatedAtDesc(Long ownerId, Pageable pageable);
+    @Query(
+            value = "SELECT i FROM Inquiry i JOIN FETCH i.property p WHERE p.ownerId = :ownerId",
+            countQuery = "SELECT count(i) FROM Inquiry i JOIN i.property p WHERE p.ownerId = :ownerId")
+    Page<Inquiry> findByPropertyOwnerId(@Param("ownerId") Long ownerId, Pageable pageable);
+
+    @Query(
+            value = "SELECT i FROM Inquiry i JOIN FETCH i.property p WHERE p.ownerId = :ownerId AND i.readAt IS NULL",
+            countQuery = "SELECT count(i) FROM Inquiry i JOIN i.property p WHERE p.ownerId = :ownerId AND i.readAt IS NULL")
+    Page<Inquiry> findUnreadByPropertyOwnerId(@Param("ownerId") Long ownerId, Pageable pageable);
+
+    @Query(
+            value = "SELECT i FROM Inquiry i JOIN FETCH i.property p WHERE p.ownerId = :ownerId AND p.id = :propertyId",
+            countQuery = "SELECT count(i) FROM Inquiry i JOIN i.property p WHERE p.ownerId = :ownerId AND p.id = :propertyId")
+    Page<Inquiry> findByPropertyOwnerIdAndPropertyId(
+            @Param("ownerId") Long ownerId, @Param("propertyId") Long propertyId, Pageable pageable);
+
+    @Query(
+            value = "SELECT i FROM Inquiry i JOIN FETCH i.property p WHERE p.ownerId = :ownerId AND p.id = :propertyId AND i.readAt IS NULL",
+            countQuery = "SELECT count(i) FROM Inquiry i JOIN i.property p WHERE p.ownerId = :ownerId AND p.id = :propertyId AND i.readAt IS NULL")
+    Page<Inquiry> findUnreadByPropertyOwnerIdAndPropertyId(
+            @Param("ownerId") Long ownerId, @Param("propertyId") Long propertyId, Pageable pageable);
+
+    @Query("SELECT i FROM Inquiry i JOIN FETCH i.property WHERE i.id = :id")
+    Optional<Inquiry> findByIdWithProperty(@Param("id") Long id);
+
+    @Query("SELECT count(i) FROM Inquiry i JOIN i.property p WHERE p.ownerId = :ownerId AND i.readAt IS NULL")
+    long countUnreadByPropertyOwnerId(@Param("ownerId") Long ownerId);
 }

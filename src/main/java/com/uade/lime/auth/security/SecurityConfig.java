@@ -43,8 +43,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/properties", "/api/v1/properties/{id}").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/register", "/api/v1/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/properties/{id}/inquiries").permitAll()
-                        // Nico inbox still uses X-User-Id until JWT migration.
-                        .requestMatchers("/api/v1/me/inquiries", "/api/v1/me/inquiries/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(exceptions -> exceptions
