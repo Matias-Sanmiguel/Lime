@@ -179,8 +179,12 @@ public class PropertyService {
     }
 
     @Transactional(readOnly = true)
-    public PropertyResponse get(Long id) {
+    public PropertyResponse get(Long id, UserPrincipal user) {
         Property property = findActive(id);
+        boolean isOwner = user != null && property.getOwnerId().equals(user.id());
+        if (property.getStatus() != PropertyStatus.PUBLISHED && !isOwner) {
+            throw new RecursoNoEncontradoException("Property not found");
+        }
         OwnerResponse owner = userRepository.findById(property.getOwnerId())
                 .map(OwnerResponse::from)
                 .orElse(null);

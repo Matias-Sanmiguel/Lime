@@ -99,8 +99,8 @@ public class PropertyController {
     }
 
     @GetMapping("/{id}")
-    public PropertyResponse get(@PathVariable Long id) {
-        return service.get(id);
+    public PropertyResponse get(@PathVariable Long id, @AuthenticationPrincipal UserPrincipal user) {
+        return service.get(id, user);
     }
 
     @PatchMapping("/{id}")

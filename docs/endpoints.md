@@ -16,7 +16,7 @@ Actualizado: 26 ago 2026. Contrato v1: **20 REST + `GET /uploads/**`**. El detal
 |---|--------|--------|------|----------|-------|-------|
 | 1 | Hecho | `GET` | `/properties` | Público | — | LIM-1 |
 | 2 | Hecho | `POST` | `/properties` | JWT | — / Facu | LIM-1 |
-| 3 | Hecho | `GET` | `/properties/{id}` | Público (cualquier estado no borrado) | — | LIM-1 |
+| 3 | Hecho | `GET` | `/properties/{id}` | Mixto: solo `PUBLISHED` público, dueño JWT ve DRAFT/PAUSED | Lucas | LIM-12 |
 | 4 | Hecho | `DELETE` | `/properties/{id}` | JWT · dueño | — | LIM-1 |
 | 5 | Hecho | `PATCH` | `/properties/{id}` | JWT · dueño | Augusto | LIM-3 |
 | 6 | Hecho | `POST` | `/properties/{id}/publish` | JWT · dueño | Lucas | LIM-3 |
