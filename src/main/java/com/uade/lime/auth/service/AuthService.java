@@ -76,6 +76,8 @@ public class AuthService {
                 request.name(),
                 role,
                 agencyName,
+                request.birthDate(),
+                request.sex(),
                 Instant.now());
         try {
             user = userRepository.save(user);

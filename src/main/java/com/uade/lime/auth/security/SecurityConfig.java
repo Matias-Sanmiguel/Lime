@@ -43,9 +43,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/properties", "/api/v1/properties/{id}").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/register", "/api/v1/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/properties/{id}/inquiries").permitAll()
-                        // Facu (#13) ya migrado a JWT. Nico (#18) sigue pendiente con X-User-Id.
-                        .requestMatchers(HttpMethod.GET, "/api/v1/me/inquiries").permitAll()
-                        // GET /uploads/** (LIM-4, Lola) se suma acá cuando exista ese endpoint.
+                        // Nico inbox still uses X-User-Id until JWT migration.
+                        .requestMatchers("/api/v1/me/inquiries", "/api/v1/me/inquiries/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint((request, response, authException) -> writeProblemDetail(

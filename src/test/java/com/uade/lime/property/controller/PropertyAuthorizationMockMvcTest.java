@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +24,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
 
+import com.uade.lime.auth.model.Sex;
 import com.uade.lime.auth.model.User;
 import com.uade.lime.auth.model.UserRole;
 import com.uade.lime.auth.repository.DenylistedTokenRepository;
@@ -74,12 +76,15 @@ class PropertyAuthorizationMockMvcTest {
         userRepository.deleteAll();
 
         Instant now = Instant.now();
+        LocalDate birthDate = LocalDate.of(1995, 1, 1);
         owner = userRepository.save(User.register(
                 "owner@example.com",
                 "encoded-password",
                 "Owner User",
                 UserRole.USER,
                 null,
+                birthDate,
+                Sex.MALE,
                 now));
         differentUser = userRepository.save(User.register(
                 "other@example.com",
@@ -87,6 +92,8 @@ class PropertyAuthorizationMockMvcTest {
                 "Other User",
                 UserRole.USER,
                 null,
+                birthDate,
+                Sex.FEMALE,
                 now));
     }
 

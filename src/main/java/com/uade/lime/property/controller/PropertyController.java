@@ -58,8 +58,12 @@ public class PropertyController {
             @RequestParam(required = false) OperationType operation,
             @RequestParam(required = false) PropertyStatus status,
             @RequestParam(required = false) @PositiveOrZero BigDecimal minPrice,
-            @RequestParam(required = false) @PositiveOrZero BigDecimal maxPrice) {
-        return service.list(page, size, city, type, operation, status, minPrice, maxPrice);
+            @RequestParam(required = false) @PositiveOrZero BigDecimal maxPrice,
+            @RequestParam(required = false) String province,
+            @RequestParam(required = false) @PositiveOrZero Integer minBedrooms,
+            @RequestParam(required = false) @PositiveOrZero Integer minBathrooms) {
+        return service.list(
+                page, size, city, type, operation, status, minPrice, maxPrice, province, minBedrooms, minBathrooms);
     }
 
     @PostMapping

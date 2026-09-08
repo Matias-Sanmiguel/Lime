@@ -115,7 +115,10 @@ public class PropertyService {
             OperationType operation,
             PropertyStatus status,
             BigDecimal minPrice,
-            BigDecimal maxPrice) {
+            BigDecimal maxPrice,
+            String province,
+            Integer minBedrooms,
+            Integer minBathrooms) {
         if (minPrice != null && maxPrice != null && minPrice.compareTo(maxPrice) > 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "minPrice cannot be greater than maxPrice");
         }
@@ -123,6 +126,8 @@ public class PropertyService {
         Specification<Property> filters = (root, query, builder) -> {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(builder.isNull(root.get("deletedAt")));
+            // Public listing only shows published ads (Lucas #15).
+            predicates.add(builder.equal(root.get("status"), PropertyStatus.PUBLISHED));
             if (city != null && !city.isBlank()) {
                 predicates.add(builder.equal(builder.lower(root.get("city")), city.trim().toLowerCase()));
             }
@@ -132,14 +137,20 @@ public class PropertyService {
             if (operation != null) {
                 predicates.add(builder.equal(root.get("operation"), operation));
             }
-            if (status != null) {
-                predicates.add(builder.equal(root.get("status"), status));
-            }
             if (minPrice != null) {
                 predicates.add(builder.greaterThanOrEqualTo(root.get("price"), minPrice));
             }
             if (maxPrice != null) {
                 predicates.add(builder.lessThanOrEqualTo(root.get("price"), maxPrice));
+            }
+            if (province != null && !province.isBlank()) {
+                predicates.add(builder.equal(builder.lower(root.get("province")), province.trim().toLowerCase()));
+            }
+            if (minBedrooms != null) {
+                predicates.add(builder.greaterThanOrEqualTo(root.get("bedrooms"), minBedrooms));
+            }
+            if (minBathrooms != null) {
+                predicates.add(builder.greaterThanOrEqualTo(root.get("bathrooms"), minBathrooms));
             }
             return builder.and(predicates.toArray(Predicate[]::new));
         };
@@ -325,7 +336,11 @@ public class PropertyService {
         if (current != PropertyStatus.DRAFT && current != PropertyStatus.PAUSED) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Cannot publish a property in status " + current);
         }
-        property.publish(Instant.now());
+        try {
+            property.publish(Instant.now());
+        } catch (IllegalStateException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage());
+        }
         return PropertyResponse.from(property, ownerResponseOf(user));
     }
 

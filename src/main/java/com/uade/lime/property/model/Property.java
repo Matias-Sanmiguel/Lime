@@ -122,8 +122,20 @@ public class Property {
     }
 
     public void publish(Instant now) {
+        requireComplete();
         status = PropertyStatus.PUBLISHED;
         updatedAt = now;
+    }
+
+    private void requireComplete() {
+        if (isBlank(title) || price == null || isBlank(currency) || isBlank(city) || type == null || operation == null) {
+            throw new IllegalStateException(
+                    "Cannot publish: title, price, currency, city, type and operation are required");
+        }
+    }
+
+    private static boolean isBlank(String value) {
+        return value == null || value.isBlank();
     }
 
     public void pause(Instant now) {

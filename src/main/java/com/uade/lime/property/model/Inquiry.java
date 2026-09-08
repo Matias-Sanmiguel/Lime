@@ -57,4 +57,10 @@ public class Inquiry {
         inquiry.createdAt = now;
         return inquiry;
     }
+
+    public void markRead(Instant now) {
+        if (this.readAt == null) {
+            this.readAt = now;
+        }
+    }
 }
