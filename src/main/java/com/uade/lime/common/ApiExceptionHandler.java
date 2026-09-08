@@ -22,6 +22,15 @@ public class ApiExceptionHandler {
         return problem;
     }
 
+    @ExceptionHandler(ArgumentInvalidException.class)
+    public ProblemDetail handleArgumentInvalid(ArgumentInvalidException exception) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                exception.getMessage());
+        problem.setTitle("Invalid argument");
+        return problem;
+    }
+
     @ExceptionHandler(RecursoNoEncontradoException.class)
     public ProblemDetail handleRecursoNoEncontrado(RecursoNoEncontradoException exception) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());
