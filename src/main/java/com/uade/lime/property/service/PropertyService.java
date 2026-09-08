@@ -290,6 +290,10 @@ public class PropertyService {
     @Transactional
     public InquiryResponse createInquiry(Long propertyId, CreateInquiryRequest request) {
         Property property = findActive(propertyId);
+
+        if (property.getStatus() != PropertyStatus.PUBLISHED) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Property is not published, cannot receive inquiries");       
+        }
         Inquiry inquiry = Inquiry.create(
                 property,
                 request.name(),
@@ -297,9 +301,9 @@ public class PropertyService {
                 request.phone(),
                 request.message(),
                 Instant.now());
+
         return InquiryResponse.from(inquiryRepository.save(inquiry));
     }
-
     private Property findActive(Long id) {
         return repository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Property not found"));

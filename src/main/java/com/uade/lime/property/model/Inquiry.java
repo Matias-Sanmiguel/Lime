@@ -44,6 +44,9 @@ public class Inquiry {
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
+    @Column
+    private Instant readAt;
+
     public static Inquiry create(Property property, String name, String email, String phone, String message, Instant now) {
         Inquiry inquiry = new Inquiry();
         inquiry.property = property;
