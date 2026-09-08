@@ -1,8 +1,9 @@
 type NavbarProps = {
-  onNavigate: (view: "home" | "detail" | "owner", id?: number) => void;
+  onNavigate: (view: "home" | "search" | "detail" | "owner", id?: number) => void;
+  onSearchNavigate: () => void;
 };
 
-export function Navbar({ onNavigate }: NavbarProps) {
+export function Navbar({ onNavigate, onSearchNavigate }: NavbarProps) {
   return (
     <header className="navbar">
       <button className="brand" type="button" onClick={() => onNavigate("home")} aria-label="Ir al inicio">
@@ -10,10 +11,10 @@ export function Navbar({ onNavigate }: NavbarProps) {
         <span>Lime</span>
       </button>
       <nav className="nav-links" aria-label="Principal">
-        <button type="button" onClick={() => onNavigate("home")}>
+        <button type="button" onClick={onSearchNavigate}>
           Comprar
         </button>
-        <button type="button" onClick={() => onNavigate("home")}>
+        <button type="button" onClick={onSearchNavigate}>
           Alquilar
         </button>
         <button type="button" onClick={() => onNavigate("owner")}>

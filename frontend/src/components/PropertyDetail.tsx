@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { resolveImageUrl } from "../api";
 import { formatArea, formatPrice, operationLabels, typeLabels } from "../format";
 import type { Property } from "../types";
 import { EmptyState } from "./EmptyState";
+import { InquiryForm } from "./InquiryForm";
 import { SkeletonCard } from "./SkeletonCard";
 import { StatusBadge } from "./StatusBadge";
 
@@ -13,6 +15,8 @@ type PropertyDetailProps = {
 };
 
 export function PropertyDetail({ loading, property, error, onBack }: PropertyDetailProps) {
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
   if (loading) {
     return (
       <section className="detail-shell page-enter">
@@ -42,21 +46,32 @@ export function PropertyDetail({ loading, property, error, onBack }: PropertyDet
   const facts = [
     property.type ? typeLabels[property.type] : null,
     property.bedrooms !== null ? `${property.bedrooms} dormitorios` : null,
-    property.bathrooms !== null ? `${property.bathrooms} baños` : null,
-    formatArea(property.coveredArea),
-    formatArea(property.totalArea),
+    property.bathrooms !== null ? `${property.bathrooms} banos` : null,
+    property.coveredArea !== null ? `${formatArea(property.coveredArea)} cubiertos` : null,
+    property.totalArea !== null ? `${formatArea(property.totalArea)} totales` : null,
   ].filter(Boolean);
+  const selectedImage = images[selectedImageIndex] ?? images[0];
+  const publisher = property.owner?.agencyName || property.owner?.name;
 
   return (
     <section className="detail-shell page-enter">
       <button className="text-button" type="button" onClick={onBack}>
         Volver
       </button>
-      <div className="detail-gallery">
-        <GalleryImage src={images[0]} title={property.title} featured />
+      <div className="detail-gallery" aria-label="Imagenes de la propiedad">
+        <GalleryImage src={selectedImage} title={property.title} featured />
         <div className="gallery-stack">
-          <GalleryImage src={images[1]} title={property.title} />
-          <GalleryImage src={images[2]} title={property.title} />
+          {(images.length > 1 ? images.slice(0, 4) : [undefined, undefined]).map((image, index) => (
+            <button
+              className={index === selectedImageIndex ? "gallery-thumb gallery-thumb-active" : "gallery-thumb"}
+              type="button"
+              key={`${image ?? "fallback"}-${index}`}
+              onClick={() => setSelectedImageIndex(index)}
+              aria-label={`Ver imagen ${index + 1}`}
+            >
+              <GalleryImage src={image} title={property.title} />
+            </button>
+          ))}
         </div>
       </div>
       <div className="detail-layout">
@@ -66,7 +81,8 @@ export function PropertyDetail({ loading, property, error, onBack }: PropertyDet
             <StatusBadge status={property.status} />
           </div>
           <h1>{property.title ?? "Propiedad sin titulo"}</h1>
-          <p className="detail-location">{location || "Ubicación a confirmar"}</p>
+          <p className="detail-location">{location || "Ubicacion a confirmar"}</p>
+          {publisher && <p className="publisher-line">Publicado por {publisher}</p>}
           <p className="detail-price">{formatPrice(property.price, property.currency)}</p>
           <div className="detail-facts">
             {facts.map((fact) => (
@@ -74,21 +90,11 @@ export function PropertyDetail({ loading, property, error, onBack }: PropertyDet
             ))}
           </div>
           <div className="description-block">
-            <h2>Descripción</h2>
-            <p>{property.description || "El publicador todavia no agrego una descripción."}</p>
+            <h2>Descripcion</h2>
+            <p>{property.description || "El publicador todavia no agrego una descripcion."}</p>
           </div>
         </article>
-        <aside className="contact-panel" aria-label="Consulta">
-          <p className="eyebrow">Consulta</p>
-          <h2>Coordiná una visita</h2>
-          <p>Dejá tus datos y el publicador puede responderte por mail o teléfono.</p>
-          <div className="contact-fields" aria-hidden="true">
-            <span>Nombre</span>
-            <span>Email</span>
-            <span>Mensaje</span>
-          </div>
-          <button type="button">Consultar propiedad</button>
-        </aside>
+        <InquiryForm propertyId={property.id} />
       </div>
     </section>
   );

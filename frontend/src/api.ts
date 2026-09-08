@@ -1,4 +1,4 @@
-import type { PageResponse, Property, SearchFilters } from "./types";
+import type { CreateInquiryRequest, InquiryResponse, PageResponse, Property, SearchFilters } from "./types";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "";
 
@@ -49,6 +49,13 @@ export function getProperties(filters: SearchFilters) {
 
 export function getProperty(id: number) {
   return request<Property>(`/properties/${id}`);
+}
+
+export function createInquiry(propertyId: number, payload: CreateInquiryRequest) {
+  return request<InquiryResponse>(`/properties/${propertyId}/inquiries`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 }
 
 export function getMyProperties() {

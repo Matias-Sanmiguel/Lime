@@ -6,7 +6,8 @@ import { Navbar } from "./components/Navbar";
 import { OwnerPanel } from "./components/OwnerPanel";
 import { PropertyDetail } from "./components/PropertyDetail";
 import { PropertyGrid } from "./components/PropertyGrid";
-import type { Property, SearchFilters } from "./types";
+import { SearchResultsPage } from "./components/SearchResultsPage";
+import type { OperationType, Property, PropertyType, SearchFilters } from "./types";
 
 const initialFilters: SearchFilters = {
   city: "",
@@ -16,11 +17,12 @@ const initialFilters: SearchFilters = {
   maxPrice: "",
 };
 
-type View = "home" | "detail" | "owner";
+type View = "home" | "search" | "detail" | "owner";
 
 function currentPathView(): { view: View; id?: number } {
   const path = window.location.pathname;
-  if (path.startsWith("/propiedades/")) {
+  if (path === "/buscar") return { view: "search" };
+  if (path.startsWith("/propiedad/") || path.startsWith("/propiedades/")) {
     const id = Number(path.split("/").pop());
     return Number.isFinite(id) ? { view: "detail", id } : { view: "home" };
   }
@@ -28,8 +30,41 @@ function currentPathView(): { view: View; id?: number } {
   return { view: "home" };
 }
 
+function filtersFromUrl(): SearchFilters {
+  const params = new URLSearchParams(window.location.search);
+  return {
+    city: params.get("city") ?? "",
+    type: parsePropertyType(params.get("type")),
+    operation: parseOperationType(params.get("operation")),
+    minPrice: params.get("minPrice") ?? "",
+    maxPrice: params.get("maxPrice") ?? "",
+  };
+}
+
+function filtersToQuery(filters: SearchFilters) {
+  const params = new URLSearchParams();
+  if (filters.city.trim()) params.set("city", filters.city.trim());
+  if (filters.type) params.set("type", filters.type);
+  if (filters.operation) params.set("operation", filters.operation);
+  if (filters.minPrice.trim()) params.set("minPrice", filters.minPrice.trim());
+  if (filters.maxPrice.trim()) params.set("maxPrice", filters.maxPrice.trim());
+  return params.toString();
+}
+
+function parsePropertyType(value: string | null): "" | PropertyType {
+  return value === "APARTMENT" || value === "HOUSE" || value === "LAND" || value === "COMMERCIAL" || value === "OTHER"
+    ? value
+    : "";
+}
+
+function parseOperationType(value: string | null): "" | OperationType {
+  return value === "SALE" || value === "RENT" || value === "TEMPORARY_RENT" ? value : "";
+}
+
 export default function App() {
-  const [filters, setFilters] = useState<SearchFilters>(initialFilters);
+  const [filters, setFilters] = useState<SearchFilters>(() =>
+    currentPathView().view === "search" ? filtersFromUrl() : initialFilters,
+  );
   const [properties, setProperties] = useState<Property[]>([]);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [ownerProperties, setOwnerProperties] = useState<Property[]>([]);
@@ -45,19 +80,34 @@ export default function App() {
   );
 
   useEffect(() => {
-    const onPopState = () => setViewState(currentPathView());
+    const onPopState = () => {
+      const nextView = currentPathView();
+      setViewState(nextView);
+      if (nextView.view === "search") setFilters(filtersFromUrl());
+    };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
   }, []);
 
   useEffect(() => {
+    if (viewState.view !== "home") return;
+    setLoading(true);
+    setError("");
+    getProperties(initialFilters)
+      .then((page) => setProperties(page.content))
+      .catch((err: Error) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, [viewState.view]);
+
+  useEffect(() => {
+    if (viewState.view !== "search") return;
     setLoading(true);
     setError("");
     getProperties(filters)
       .then((page) => setProperties(page.content))
       .catch((err: Error) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [filters]);
+  }, [filters, viewState.view]);
 
   useEffect(() => {
     if (viewState.view !== "detail" || !viewState.id) return;
@@ -79,34 +129,39 @@ export default function App() {
   }, [viewState.view]);
 
   function navigate(view: View, id?: number) {
-    const path = view === "detail" && id ? `/propiedades/${id}` : view === "owner" ? "/publicador" : "/";
+    const path = view === "detail" && id ? `/propiedad/${id}` : view === "owner" ? "/publicador" : "/";
     window.history.pushState({}, "", path);
     setViewState({ view, id });
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  function navigateSearch(nextFilters = filters, replace = false) {
+    const query = filtersToQuery(nextFilters);
+    const path = query ? `/buscar?${query}` : "/buscar";
+    window.history[replace ? "replaceState" : "pushState"]({}, "", path);
+    setFilters(nextFilters);
+    setViewState({ view: "search" });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   function resetFilters() {
     setFilters(initialFilters);
+    if (viewState.view === "search") navigateSearch(initialFilters, true);
   }
 
   return (
     <>
-      <Navbar onNavigate={navigate} />
+      <Navbar onNavigate={navigate} onSearchNavigate={navigateSearch} />
       <main>
         {viewState.view === "home" && (
           <div className="page-enter">
-            <HeroSearch filters={filters} onFiltersChange={setFilters} />
+            <HeroSearch filters={filters} onFiltersChange={setFilters} onSearch={() => navigateSearch(filters)} />
             <section className="section-shell" aria-labelledby="featured-heading">
               <div className="section-heading">
                 <div>
                   <p className="eyebrow">Propiedades disponibles</p>
-                  <h2 id="featured-heading">Elegí con datos claros y una experiencia con carácter.</h2>
+                  <h2 id="featured-heading">Elegi con datos claros y una experiencia con caracter.</h2>
                 </div>
-                {hasActiveFilters && (
-                  <button className="text-button" type="button" onClick={resetFilters}>
-                    Limpiar filtros
-                  </button>
-                )}
               </div>
               {error ? (
                 <EmptyState title="No pudimos cargar las propiedades." action="Reintentar" onAction={() => setFilters({ ...filters })}>
@@ -116,7 +171,7 @@ export default function App() {
                 <PropertyGrid
                   loading={loading}
                   properties={properties}
-                  hasActiveFilters={hasActiveFilters}
+                  hasActiveFilters={false}
                   onSelect={(property) => navigate("detail", property.id)}
                   onClearFilters={resetFilters}
                 />
@@ -125,13 +180,13 @@ export default function App() {
             <section className="value-band" aria-label="Diferenciales de Lime">
               <div>
                 <span>01</span>
-                <h3>Búsqueda limpia</h3>
-                <p>Filtros simples, lectura rápida y datos comparables desde el primer vistazo.</p>
+                <h3>Busqueda limpia</h3>
+                <p>Filtros simples, lectura rapida y datos comparables desde el primer vistazo.</p>
               </div>
               <div>
                 <span>02</span>
                 <h3>Publicaciones claras</h3>
-                <p>Precio, operación, ubicación y superficie ordenados para decidir sin fricción.</p>
+                <p>Precio, operacion, ubicacion y superficie ordenados para decidir sin friccion.</p>
               </div>
               <div>
                 <span>03</span>
@@ -142,8 +197,8 @@ export default function App() {
             <section className="publish-band">
               <div>
                 <p className="eyebrow">Publicadores</p>
-                <h2>Publicá tu propiedad con una presencia más cuidada.</h2>
-                <p>Llegá a más personas con avisos ordenados, visuales y listos para consultar.</p>
+                <h2>Publica tu propiedad con una presencia mas cuidada.</h2>
+                <p>Llega a mas personas con avisos ordenados, visuales y listos para consultar.</p>
               </div>
               <button type="button" onClick={() => navigate("owner")}>
                 Publicar ahora
@@ -151,9 +206,24 @@ export default function App() {
             </section>
             <footer className="footer">
               <span>Lime</span>
-              <p>Marketplace inmobiliario con precisión editorial.</p>
+              <p>Marketplace inmobiliario con precision editorial.</p>
             </footer>
           </div>
+        )}
+
+        {viewState.view === "search" && (
+          <SearchResultsPage
+            filters={filters}
+            properties={properties}
+            loading={loading}
+            error={error}
+            hasActiveFilters={hasActiveFilters}
+            onFiltersChange={setFilters}
+            onSearch={() => navigateSearch(filters, true)}
+            onRetry={() => navigateSearch(filters, true)}
+            onSelect={(property) => navigate("detail", property.id)}
+            onClearFilters={resetFilters}
+          />
         )}
 
         {viewState.view === "detail" && (
@@ -161,7 +231,7 @@ export default function App() {
             loading={detailLoading}
             property={selectedProperty}
             error={error}
-            onBack={() => navigate("home")}
+            onBack={() => navigateSearch(filters)}
           />
         )}
 

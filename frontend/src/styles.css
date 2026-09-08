@@ -47,7 +47,8 @@ button:disabled {
 
 button:focus-visible,
 input:focus-visible,
-select:focus-visible {
+select:focus-visible,
+textarea:focus-visible {
   outline: 2px solid var(--lime-dark);
   outline-offset: 3px;
 }
@@ -115,7 +116,7 @@ select:focus-visible {
 }
 
 .account-button,
-.hero button,
+.search-panel button,
 .empty-state button,
 .owner-content > .section-heading button,
 .contact-panel button {
@@ -129,7 +130,7 @@ select:focus-visible {
 }
 
 .account-button:hover,
-.hero button:hover,
+.search-panel button:hover,
 .empty-state button:hover,
 .owner-content > .section-heading button:hover,
 .contact-panel button:hover {
@@ -194,7 +195,7 @@ select:focus-visible {
 
 .search-panel {
   display: grid;
-  grid-template-columns: 1.4fr 1fr 1fr 0.8fr 0.8fr auto;
+  grid-template-columns: minmax(150px, 1.4fr) minmax(105px, 1fr) minmax(115px, 1fr) minmax(92px, 0.85fr) minmax(92px, 0.85fr) auto;
   gap: 10px;
   align-items: end;
   padding: 12px;
@@ -236,7 +237,8 @@ select:focus-visible {
 
 .section-shell,
 .detail-shell,
-.owner-shell {
+.owner-shell,
+.search-page {
   max-width: 1360px;
   margin: 0 auto;
   padding: 34px clamp(20px, 5vw, 72px) 72px;
@@ -560,7 +562,35 @@ select:focus-visible {
   gap: 8px;
 }
 
+.contact-fields label {
+  display: grid;
+  gap: 7px;
+}
+
 .contact-fields span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.contact-fields input,
+.contact-fields textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--ink);
+  padding: 12px;
+  resize: vertical;
+}
+
+.contact-fields input {
+  height: 44px;
+}
+
+.contact-fields > span {
   display: flex;
   align-items: center;
   height: 42px;
@@ -568,6 +598,25 @@ select:focus-visible {
   border-radius: 14px;
   padding-inline: 12px;
   color: var(--muted);
+}
+
+.form-message {
+  margin: 0;
+  border-radius: 14px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.form-message-error {
+  background: #fee2e2;
+  color: var(--danger);
+}
+
+.form-message-success {
+  background: var(--lime-soft);
+  color: var(--green-deep, var(--lime-dark));
 }
 
 .owner-shell {
@@ -680,6 +729,69 @@ select:focus-visible {
   animation: pageIn 360ms ease both;
 }
 
+.search-page {
+  display: grid;
+  gap: 24px;
+  max-width: none;
+  min-height: calc(100vh - 74px);
+  margin: 0;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(163, 214, 92, 0.18), transparent 32%),
+    linear-gradient(180deg, #f8faf5 0%, var(--bg) 100%);
+}
+
+.search-page-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.search-page-header h1 {
+  margin: 0;
+  color: var(--ink);
+  font-family: "Newsreader", Georgia, serif;
+  font-size: clamp(40px, 6vw, 68px);
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.search-page-header p:not(.eyebrow) {
+  max-width: 720px;
+  margin: 14px 0 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.search-panel-results {
+  grid-template-columns: minmax(190px, 1.2fr) minmax(145px, 0.9fr) minmax(145px, 0.9fr) minmax(120px, 0.75fr) minmax(120px, 0.75fr) auto;
+  margin-bottom: 8px;
+  box-shadow: var(--soft-shadow);
+}
+
+.gallery-thumb {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 18px;
+  background: transparent;
+  transition: border-color 180ms ease, transform 180ms ease;
+}
+
+.gallery-thumb:hover,
+.gallery-thumb-active {
+  border-color: rgba(73, 107, 87, 0.48);
+  transform: translateY(-1px);
+}
+
+.publisher-line {
+  margin: -8px 0 0;
+  color: var(--green-medium);
+  font-weight: 800;
+}
+
 @keyframes pageIn {
   from {
     opacity: 0;
@@ -730,6 +842,10 @@ select:focus-visible {
     grid-template-columns: 1fr;
   }
 
+  .search-panel-results {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .contact-panel,
   .owner-sidebar {
     position: static;
@@ -776,6 +892,7 @@ select:focus-visible {
   }
 
   .section-heading,
+  .search-page-header,
   .owner-row {
     align-items: start;
     grid-template-columns: 1fr;
@@ -844,7 +961,7 @@ body {
 }
 
 .account-button,
-.hero button,
+.search-panel button,
 .empty-state button,
 .owner-content > .section-heading button,
 .contact-panel button {
@@ -854,7 +971,7 @@ body {
 }
 
 .account-button:hover,
-.hero button:hover,
+.search-panel button:hover,
 .empty-state button:hover,
 .owner-content > .section-heading button:hover,
 .contact-panel button:hover {
@@ -961,7 +1078,8 @@ body {
 }
 
 .detail-shell,
-.owner-shell {
+.owner-shell,
+.search-page {
   color: var(--ink);
 }
 
@@ -1191,7 +1309,9 @@ body {
   box-shadow: var(--soft-shadow);
 }
 
-.contact-fields span {
+.contact-fields > span,
+.contact-fields input,
+.contact-fields textarea {
   border-color: var(--border);
   background: rgba(32, 41, 32, 0.86);
   color: var(--muted);
@@ -1343,7 +1463,7 @@ body {
 }
 
 .account-button,
-.hero button,
+.search-panel button,
 .empty-state button,
 .owner-content > .section-heading button,
 .contact-panel button {
@@ -1353,7 +1473,7 @@ body {
 }
 
 .account-button:hover,
-.hero button:hover,
+.search-panel button:hover,
 .empty-state button:hover,
 .owner-content > .section-heading button:hover,
 .contact-panel button:hover {
@@ -1439,7 +1559,8 @@ body {
 }
 
 .detail-shell,
-.owner-shell {
+.owner-shell,
+.search-page {
   color: var(--ink);
   background:
     radial-gradient(circle at 12% 8%, rgba(163, 214, 92, 0.18), transparent 32%),
@@ -1594,10 +1715,17 @@ body {
   box-shadow: var(--soft-shadow);
 }
 
-.contact-fields span {
+.contact-fields > span,
+.contact-fields input,
+.contact-fields textarea {
   border-color: var(--border);
   background: #fbfcfa;
   color: var(--muted);
+}
+
+.contact-fields input,
+.contact-fields textarea {
+  color: var(--ink);
 }
 
 .description-block {
