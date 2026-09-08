@@ -21,7 +21,6 @@ import com.uade.lime.auth.model.User;
 import com.uade.lime.auth.repository.UserRepository;
 import com.uade.lime.auth.security.UserPrincipal;
 import com.uade.lime.common.exception.RecursoNoEncontradoException;
-import com.uade.lime.property.dto.CreateImageRequest;
 import com.uade.lime.property.dto.CreateInquiryRequest;
 import com.uade.lime.property.dto.CreatePropertyRequest;
 import com.uade.lime.property.dto.ImageResponse;
@@ -39,37 +38,74 @@ import com.uade.lime.property.model.PropertyType;
 import com.uade.lime.property.repository.InquiryRepository;
 import com.uade.lime.property.repository.PropertyImageRepository;
 import com.uade.lime.property.repository.PropertyRepository;
+import com.uade.lime.property.storage.FileStorageService;
+import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.persistence.criteria.Predicate;
 
 @Service
 public class PropertyService {
 
-    private final PropertyRepository repository;
+        private final PropertyRepository repository;
     private final PropertyImageRepository imageRepository;
     private final InquiryRepository inquiryRepository;
     private final UserRepository userRepository;
+    private final FileStorageService fileStorageService;
 
     public PropertyService(
             PropertyRepository repository,
             PropertyImageRepository imageRepository,
             InquiryRepository inquiryRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            FileStorageService fileStorageService) {
         this.repository = repository;
         this.imageRepository = imageRepository;
         this.inquiryRepository = inquiryRepository;
         this.userRepository = userRepository;
+        this.fileStorageService = fileStorageService;
     }
 
     @Transactional
-    public Optional<ImageResponse> addImage(Long propertyId, CreateImageRequest request) {
-    return repository.findByIdAndDeletedAtIsNull(propertyId)
-            .map(property -> {
-                PropertyImage image = PropertyImage.of(property, request.url(), Instant.now());
-                return ImageResponse.from(imageRepository.save(image));
-            });
+    public ImageResponse addImage(Long propertyId, MultipartFile file, UserPrincipal user) {
+        Property property = findActive(propertyId);
+        requireOwner(property, user.id());
+
+        String filename = fileStorageService.store(file);
+        PropertyImage image = PropertyImage.of(property, "/uploads/" + filename, Instant.now());
+        return ImageResponse.from(imageRepository.save(image));
     }
 
+    @Transactional
+    public void deleteImage(Long propertyId, Long imageId, UserPrincipal user) {
+        Property property = findActive(propertyId);
+        requireOwner(property, user.id());
+
+        PropertyImage image = imageRepository.findByIdAndPropertyId(imageId, propertyId)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Image not found"));
+
+        String filename = image.getUrl().substring(image.getUrl().lastIndexOf('/') + 1);
+        fileStorageService.delete(filename);
+        imageRepository.delete(image);
+    }
+
+    @Transactional
+    public ImageResponse replaceImage(Long propertyId, Long imageId, MultipartFile file, UserPrincipal user) {
+        Property property = findActive(propertyId);
+        requireOwner(property, user.id());
+
+        PropertyImage image = imageRepository.findByIdAndPropertyId(imageId, propertyId)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Image not found"));
+
+        String oldFilename = image.getUrl().substring(image.getUrl().lastIndexOf('/') + 1);
+        String newFilename = fileStorageService.store(file);
+
+        image.replaceUrl("/uploads/" + newFilename, Instant.now());
+        PropertyImage saved = imageRepository.save(image);
+
+        fileStorageService.delete(oldFilename);
+
+        return ImageResponse.from(saved);
+    }
     @Transactional(readOnly = true)
     public PageResponse<PropertyResponse> list(
             int page,
