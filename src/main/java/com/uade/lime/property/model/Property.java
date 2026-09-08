@@ -79,22 +79,10 @@ public class Property {
 
     private Instant deletedAt;
 
-    public static Property draft(
-            String title,
-            String description,
-            PropertyType type,
-            OperationType operation,
-            BigDecimal price,
-            String currency,
-            String address,
-            String city,
-            String province,
-            Integer bedrooms,
-            Integer bathrooms,
-            BigDecimal coveredArea,
-            BigDecimal totalArea,
-            Long ownerID,
-            Instant now) {
+    public static Property draft(String title, String description, PropertyType type,
+            OperationType operation, BigDecimal price, String currency, String address, String city,
+            String province, Integer bedrooms, Integer bathrooms, BigDecimal coveredArea,
+            BigDecimal totalArea, Long ownerID, Instant now) {
         Property property = new Property();
         property.title = title;
         property.description = description;
@@ -122,8 +110,23 @@ public class Property {
     }
 
     public void publish(Instant now) {
+        requireComplete();
         status = PropertyStatus.PUBLISHED;
         updatedAt = now;
+    }
+
+    private void requireComplete() { // metodo para verificar que los campos requeridos no sean
+                                     // nulos o vacíos antes de publicar la propiedad
+        if (isBlank(title) || price == null || isBlank(currency) || isBlank(city) || type == null
+                || operation == null) {
+            throw new IllegalStateException(
+                    "Cannot publish: title, price, currency, city, type and operation are required");
+        }
+    }
+
+    private static boolean isBlank(String value) { // metodo para verificar si un string es nulo o
+                                                   // está vacío
+        return value == null || value.isBlank();
     }
 
     public void pause(Instant now) {
@@ -131,20 +134,9 @@ public class Property {
         updatedAt = now;
     }
 
-    public void update(
-            String title,
-            String description,
-            PropertyType type,
-            OperationType operation,
-            BigDecimal price,
-            String currency,
-            String address,
-            String city,
-            String province,
-            Integer bedrooms,
-            Integer bathrooms,
-            BigDecimal coveredArea,
-            BigDecimal totalArea,
+    public void update(String title, String description, PropertyType type, OperationType operation,
+            BigDecimal price, String currency, String address, String city, String province,
+            Integer bedrooms, Integer bathrooms, BigDecimal coveredArea, BigDecimal totalArea,
             Instant now) {
         this.title = title;
         this.description = description;

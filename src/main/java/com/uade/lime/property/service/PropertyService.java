@@ -223,13 +223,13 @@ public class PropertyService {
             return PropertyResponse.from(property, ownerResponseOf(user));
         }
 
-        property.update(
-                request.title() != null ? request.title() : property.getTitle(),
+        property.update(request.title() != null ? request.title() : property.getTitle(),
                 request.description() != null ? request.description() : property.getDescription(),
                 request.type() != null ? request.type() : property.getType(),
                 request.operation() != null ? request.operation() : property.getOperation(),
                 request.price() != null ? request.price() : property.getPrice(),
-                request.currency() != null ? normalizeCurrency(request.currency()) : property.getCurrency(),
+                request.currency() != null ? normalizeCurrency(request.currency())
+                        : property.getCurrency(),
                 request.address() != null ? request.address() : property.getAddress(),
                 request.city() != null ? request.city() : property.getCity(),
                 request.province() != null ? request.province() : property.getProvince(),
@@ -250,21 +250,15 @@ public class PropertyService {
 
     @Transactional(readOnly = true)
     public List<InquiryResponse> listMyInquiries(Long ownerId) {
-        return inquiryRepository.findByPropertyOwnerId(ownerId).stream()
-                .map(InquiryResponse::from)
+        return inquiryRepository.findByPropertyOwnerId(ownerId).stream().map(InquiryResponse::from)
                 .toList();
     }
 
     @Transactional
     public InquiryResponse createInquiry(Long propertyId, CreateInquiryRequest request) {
         Property property = findActive(propertyId);
-        Inquiry inquiry = Inquiry.create(
-                property,
-                request.name(),
-                request.email(),
-                request.phone(),
-                request.message(),
-                Instant.now());
+        Inquiry inquiry = Inquiry.create(property, request.name(), request.email(), request.phone(),
+                request.message(), Instant.now());
         return InquiryResponse.from(inquiryRepository.save(inquiry));
     }
 
@@ -283,9 +277,14 @@ public class PropertyService {
         requireOwner(property, user.id());
         PropertyStatus current = property.getStatus();
         if (current != PropertyStatus.DRAFT && current != PropertyStatus.PAUSED) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Cannot publish a property in status " + current);
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Cannot publish a property in status " + current);
         }
-        property.publish(Instant.now());
+        try {
+            property.publish(Instant.now());
+        } catch (IllegalStateException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
         return PropertyResponse.from(property, ownerResponseOf(user));
     }
 
@@ -294,7 +293,8 @@ public class PropertyService {
         Property property = findActive(id);
         requireOwner(property, user.id());
         if (property.getStatus() != PropertyStatus.PUBLISHED) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Cannot pause a property in status " + property.getStatus());
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Cannot pause a property in status " + property.getStatus());
         }
         property.pause(Instant.now());
         return PropertyResponse.from(property, ownerResponseOf(user));
@@ -311,18 +311,11 @@ public class PropertyService {
     }
 
     private boolean hasUpdates(UpdatePropertyRequest request) {
-        return request.title() != null
-                || request.description() != null
-                || request.type() != null
-                || request.operation() != null
-                || request.price() != null
-                || request.currency() != null
-                || request.address() != null
-                || request.city() != null
-                || request.province() != null
-                || request.bedrooms() != null
-                || request.bathrooms() != null
-                || request.coveredArea() != null
+        return request.title() != null || request.description() != null || request.type() != null
+                || request.operation() != null || request.price() != null
+                || request.currency() != null || request.address() != null || request.city() != null
+                || request.province() != null || request.bedrooms() != null
+                || request.bathrooms() != null || request.coveredArea() != null
                 || request.totalArea() != null;
     }
 }

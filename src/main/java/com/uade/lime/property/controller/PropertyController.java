@@ -105,8 +105,7 @@ public class PropertyController {
     }
 
     @PostMapping("/{id}/inquiries")
-    public ResponseEntity<InquiryResponse> createInquiry(
-            @PathVariable Long id,
+    public ResponseEntity<InquiryResponse> createInquiry(@PathVariable Long id,
             @Valid @RequestBody CreateInquiryRequest request) {
         InquiryResponse created = service.createInquiry(id, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
