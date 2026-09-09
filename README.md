@@ -1,7 +1,7 @@
 # Lime
 
 API REST de un marketplace inmobiliario (estilo Argenprop): publicar avisos, buscarlos y recibir consultas.
-Backend en Spring Boot 4 + JPA + SQL Server; autenticación JWT; frontend React en `/frontend`.
+Backend en Spring Boot 4 + JPA + SQL Server; autenticación JWT.
 Alcance TPO: CRUD de propiedades, ciclo publish/pause, imágenes, inquiries e inbox del dueño.
 Stack: Java 21, Maven, Spring Data JPA, Lombok, Spring Security.
 Base: `http://localhost:8080/api/v1`. Repo: `back-lime`.
@@ -11,7 +11,6 @@ Base: `http://localhost:8080/api/v1`. Repo: `back-lime`.
 | Capa | Stack |
 |------|-------|
 | Backend | Java 21 · Spring Boot · JPA · Security (JWT) |
-| Frontend | React · Vite · TypeScript |
 | Base de datos | SQL Server 2022 (Docker) · H2 en tests |
 
 Arquitectura en capas: `controller` → `service` (`@Transactional`) → `repository` (`JpaRepository`) → `model` (`@Entity`) + DTOs.
@@ -31,13 +30,6 @@ Solo DB + API en host (JDK 21):
 docker compose up db db-init -d
 export JAVA_HOME=/usr/lib/jvm/java-21-openjdk   # ajustar al path local
 ./mvnw spring-boot:run
-```
-
-Frontend:
-
-```bash
-cd frontend && npm install && npm run dev
-# VITE_API_URL=http://localhost:8080
 ```
 
 ## API (resumen)
@@ -69,7 +61,6 @@ Usamos **`PATCH`** (actualización parcial) en lugar de **`PUT`** (reemplazo tot
 ```text
 back-lime/
 ├── src/           # Spring Boot
-├── frontend/      # React
 ├── docs/
 ├── compose.yaml
 ├── Dockerfile
