@@ -30,6 +30,9 @@ import com.uade.lime.auth.model.UserRole;
 import com.uade.lime.auth.repository.DenylistedTokenRepository;
 import com.uade.lime.auth.repository.UserRepository;
 import com.uade.lime.auth.security.JwtService;
+import com.uade.lime.property.repository.InquiryRepository;
+import com.uade.lime.property.repository.PropertyImageRepository;
+import com.uade.lime.property.repository.PropertyRepository;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -52,6 +55,15 @@ class MeControllerMockMvcTest {
     private DenylistedTokenRepository denylistedTokenRepository;
 
     @Autowired
+    private InquiryRepository inquiryRepository;
+
+    @Autowired
+    private PropertyImageRepository propertyImageRepository;
+
+    @Autowired
+    private PropertyRepository propertyRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     private User user;
@@ -63,7 +75,15 @@ class MeControllerMockMvcTest {
                 .build();
 
         denylistedTokenRepository.deleteAll();
+        inquiryRepository.deleteAll();
+        inquiryRepository.flush();
+        propertyImageRepository.deleteAll();
+        propertyImageRepository.flush();
+        propertyRepository.deleteAll();
+        propertyRepository.flush();
+        denylistedTokenRepository.flush();
         userRepository.deleteAll();
+        userRepository.flush();
 
         user = userRepository.save(User.register(
                 "matias@example.com",

@@ -81,9 +81,14 @@ class PropertyAuthorizationMockMvcTest {
 
         denylistedTokenRepository.deleteAll();
         inquiryRepository.deleteAll();
+        inquiryRepository.flush();
         propertyImageRepository.deleteAll();
+        propertyImageRepository.flush();
         propertyRepository.deleteAll();
+        propertyRepository.flush();
+        denylistedTokenRepository.flush();
         userRepository.deleteAll();
+        userRepository.flush();
 
         Instant now = Instant.now();
         LocalDate birthDate = LocalDate.of(1995, 1, 1);
@@ -109,7 +114,7 @@ class PropertyAuthorizationMockMvcTest {
 
     @Test
     void patch_asOwner_returns200() throws Exception {
-        Property property = propertyRepository.save(draftProperty(owner.getId(), "Departamento original"));
+        Property property = propertyRepository.save(draftProperty(owner, "Departamento original"));
 
         mockMvc.perform(patch("/api/v1/properties/{id}", property.getId())
                         .header(HttpHeaders.AUTHORIZATION, bearerToken(owner))
@@ -121,7 +126,7 @@ class PropertyAuthorizationMockMvcTest {
 
     @Test
     void patch_asDifferentUser_returns403() throws Exception {
-        Property property = propertyRepository.save(draftProperty(owner.getId(), "Departamento original"));
+        Property property = propertyRepository.save(draftProperty(owner, "Departamento original"));
 
         mockMvc.perform(patch("/api/v1/properties/{id}", property.getId())
                         .header(HttpHeaders.AUTHORIZATION, bearerToken(differentUser))
@@ -132,7 +137,7 @@ class PropertyAuthorizationMockMvcTest {
 
     @Test
     void patch_asDifferentUser_doesNotModifyProperty() throws Exception {
-        Property property = propertyRepository.save(draftProperty(owner.getId(), "Departamento original"));
+        Property property = propertyRepository.save(draftProperty(owner, "Departamento original"));
         String originalTitle = propertyRepository.findById(property.getId()).orElseThrow().getTitle();
 
         mockMvc.perform(patch("/api/v1/properties/{id}", property.getId())
@@ -147,7 +152,7 @@ class PropertyAuthorizationMockMvcTest {
 
     @Test
     void patch_withoutToken_returns401() throws Exception {
-        Property property = propertyRepository.save(draftProperty(owner.getId(), "Departamento original"));
+        Property property = propertyRepository.save(draftProperty(owner, "Departamento original"));
 
         mockMvc.perform(patch("/api/v1/properties/{id}", property.getId())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -157,7 +162,7 @@ class PropertyAuthorizationMockMvcTest {
 
     @Test
     void delete_asOwner_returns204() throws Exception {
-        Property property = propertyRepository.save(draftProperty(owner.getId(), "Departamento original"));
+        Property property = propertyRepository.save(draftProperty(owner, "Departamento original"));
 
         mockMvc.perform(delete("/api/v1/properties/{id}", property.getId())
                         .header(HttpHeaders.AUTHORIZATION, bearerToken(owner)))
@@ -166,7 +171,7 @@ class PropertyAuthorizationMockMvcTest {
 
     @Test
     void delete_asDifferentUser_returns403() throws Exception {
-        Property property = propertyRepository.save(draftProperty(owner.getId(), "Departamento original"));
+        Property property = propertyRepository.save(draftProperty(owner, "Departamento original"));
 
         mockMvc.perform(delete("/api/v1/properties/{id}", property.getId())
                         .header(HttpHeaders.AUTHORIZATION, bearerToken(differentUser)))
@@ -175,7 +180,7 @@ class PropertyAuthorizationMockMvcTest {
 
     @Test
     void delete_withoutToken_returns401() throws Exception {
-        Property property = propertyRepository.save(draftProperty(owner.getId(), "Departamento original"));
+        Property property = propertyRepository.save(draftProperty(owner, "Departamento original"));
 
         mockMvc.perform(delete("/api/v1/properties/{id}", property.getId()))
                 .andExpect(status().isUnauthorized());
@@ -183,7 +188,7 @@ class PropertyAuthorizationMockMvcTest {
 
     @Test
     void publish_asOwner_returns200() throws Exception {
-        Property property = propertyRepository.save(draftProperty(owner.getId(), "Departamento original"));
+        Property property = propertyRepository.save(draftProperty(owner, "Departamento original"));
 
         mockMvc.perform(post("/api/v1/properties/{id}/publish", property.getId())
                         .header(HttpHeaders.AUTHORIZATION, bearerToken(owner)))
@@ -193,7 +198,7 @@ class PropertyAuthorizationMockMvcTest {
 
     @Test
     void publish_asDifferentUser_returns403() throws Exception {
-        Property property = propertyRepository.save(draftProperty(owner.getId(), "Departamento original"));
+        Property property = propertyRepository.save(draftProperty(owner, "Departamento original"));
 
         mockMvc.perform(post("/api/v1/properties/{id}/publish", property.getId())
                         .header(HttpHeaders.AUTHORIZATION, bearerToken(differentUser)))
@@ -202,7 +207,7 @@ class PropertyAuthorizationMockMvcTest {
 
     @Test
     void publish_withoutToken_returns401() throws Exception {
-        Property property = propertyRepository.save(draftProperty(owner.getId(), "Departamento original"));
+        Property property = propertyRepository.save(draftProperty(owner, "Departamento original"));
 
         mockMvc.perform(post("/api/v1/properties/{id}/publish", property.getId()))
                 .andExpect(status().isUnauthorized());
@@ -210,7 +215,7 @@ class PropertyAuthorizationMockMvcTest {
 
     @Test
     void pause_asOwner_returns200() throws Exception {
-        Property property = propertyRepository.save(publishedProperty(owner.getId(), "Departamento original"));
+        Property property = propertyRepository.save(publishedProperty(owner, "Departamento original"));
 
         mockMvc.perform(post("/api/v1/properties/{id}/pause", property.getId())
                         .header(HttpHeaders.AUTHORIZATION, bearerToken(owner)))
@@ -220,7 +225,7 @@ class PropertyAuthorizationMockMvcTest {
 
     @Test
     void pause_asDifferentUser_returns403() throws Exception {
-        Property property = propertyRepository.save(publishedProperty(owner.getId(), "Departamento original"));
+        Property property = propertyRepository.save(publishedProperty(owner, "Departamento original"));
 
         mockMvc.perform(post("/api/v1/properties/{id}/pause", property.getId())
                         .header(HttpHeaders.AUTHORIZATION, bearerToken(differentUser)))
@@ -229,7 +234,7 @@ class PropertyAuthorizationMockMvcTest {
 
     @Test
     void pause_withoutToken_returns401() throws Exception {
-        Property property = propertyRepository.save(publishedProperty(owner.getId(), "Departamento original"));
+        Property property = propertyRepository.save(publishedProperty(owner, "Departamento original"));
 
         mockMvc.perform(post("/api/v1/properties/{id}/pause", property.getId()))
                 .andExpect(status().isUnauthorized());
@@ -239,13 +244,13 @@ class PropertyAuthorizationMockMvcTest {
         return "Bearer " + jwtService.issue(user, UUID.randomUUID().toString());
     }
 
-    private Property publishedProperty(Long ownerId, String title) {
-        Property property = draftProperty(ownerId, title);
+    private Property publishedProperty(User owner, String title) {
+        Property property = draftProperty(owner, title);
         property.publish(Instant.now());
         return property;
     }
 
-    private Property draftProperty(Long ownerId, String title) {
+    private Property draftProperty(User owner, String title) {
         return Property.draft(
                 title,
                 "Descripcion de prueba",
@@ -260,7 +265,7 @@ class PropertyAuthorizationMockMvcTest {
                 1,
                 BigDecimal.valueOf(50),
                 BigDecimal.valueOf(60),
-                ownerId,
+                owner,
                 Instant.now());
     }
 }

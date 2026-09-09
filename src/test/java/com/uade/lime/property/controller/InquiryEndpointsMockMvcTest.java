@@ -79,14 +79,19 @@ class InquiryEndpointsMockMvcTest {
                 .build();
 
         inquiryRepository.deleteAll();
+        inquiryRepository.flush();
         propertyImageRepository.deleteAll();
+        propertyImageRepository.flush();
         propertyRepository.deleteAll();
+        propertyRepository.flush();
         denylistedTokenRepository.deleteAll();
+        denylistedTokenRepository.flush();
         userRepository.deleteAll();
+        userRepository.flush();
 
         owner = userRepository.save(user("owner@example.com", "Owner User", Sex.MALE));
         differentUser = userRepository.save(user("other@example.com", "Other User", Sex.FEMALE));
-        property = propertyRepository.save(publishedProperty(owner.getId(), "Departamento consultado"));
+        property = propertyRepository.save(publishedProperty(owner, "Departamento consultado"));
         inquiry = inquiryRepository.save(Inquiry.create(
                 property,
                 "Ana Perez",
@@ -231,7 +236,7 @@ class InquiryEndpointsMockMvcTest {
                 Instant.now());
     }
 
-    private Property publishedProperty(Long ownerId, String title) {
+    private Property publishedProperty(User owner, String title) {
         Property property = Property.draft(
                 title,
                 "Descripcion de prueba",
@@ -246,7 +251,7 @@ class InquiryEndpointsMockMvcTest {
                 1,
                 BigDecimal.valueOf(55),
                 BigDecimal.valueOf(65),
-                ownerId,
+                owner,
                 Instant.now());
         property.publish(Instant.now());
         return property;
