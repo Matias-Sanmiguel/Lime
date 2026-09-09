@@ -10,6 +10,13 @@ export type PropertyImage = {
   createdAt?: string;
 };
 
+export type Owner = {
+  id: number;
+  name: string;
+  role: "USER" | "AGENCY" | "ADMIN";
+  agencyName: string | null;
+};
+
 export type Property = {
   id: number;
   title: string | null;
@@ -26,6 +33,7 @@ export type Property = {
   coveredArea: number | null;
   totalArea: number | null;
   status: PropertyStatus;
+  owner?: Owner | null;
   images?: PropertyImage[];
   createdAt: string;
   updatedAt: string;
@@ -45,4 +53,17 @@ export type SearchFilters = {
   operation: "" | OperationType;
   minPrice: string;
   maxPrice: string;
+};
+
+export type CreateInquiryRequest = {
+  name: string;
+  email: string;
+  phone: string;
+  message: string;
+};
+
+export type InquiryResponse = CreateInquiryRequest & {
+  id: number;
+  propertyId: number;
+  createdAt: string;
 };
