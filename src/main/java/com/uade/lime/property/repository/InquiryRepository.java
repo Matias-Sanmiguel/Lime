@@ -12,4 +12,11 @@ public interface InquiryRepository extends JpaRepository<Inquiry, Long> {
 
     @Query("SELECT i FROM Inquiry i JOIN FETCH i.property p WHERE p.ownerId = :ownerId ORDER BY i.createdAt DESC")
     List<Inquiry> findByPropertyOwnerId(@Param("ownerId") Long ownerId);
+
+    long countByOwnerIdAndReadAtIsNull(Long ownerId);
+
+    Page<Inquiry> findByOwnerIdAndReadAtIsNull(Long ownerId, Pageable pageable);
+
+    Page<Inquiry> findByOwnerId(Long ownerId, Pageable pageable);
+
 }
