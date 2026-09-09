@@ -56,6 +56,14 @@ GET    /uploads/**
 
 Detalle: [`docs/endpoints.md`](docs/endpoints.md).
 
+### Por qué `PATCH` y no `PUT`
+
+Usamos **`PATCH`** (actualización parcial) en lugar de **`PUT`** (reemplazo total del recurso):
+
+- En avisos y perfil (`/properties/{id}`, `/me`, imágenes, marcar consulta leída) el cliente suele enviar **solo los campos que cambian**, no el documento completo.
+- Un `PUT` semántico exigiría reenviar todo el body; omitir un campo podría interpretarse como borrarlo o forzar defaults. Con `PATCH` + DTOs parciales (`UpdatePropertyRequest`, `UpdateMeRequest`) eso no pasa.
+- Cumple REST moderno (RFC 5789): `GET` lectura, `POST` alta/acciones, `PATCH` modificación, `DELETE` baja. El verbo de escritura existe; elegimos el que matchea el caso de uso inmobiliario.
+
 ## Estructura
 
 ```text
