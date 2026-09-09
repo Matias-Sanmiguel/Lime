@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -24,7 +25,7 @@ public class PropertyImage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne //puede haber mas de una imagen para una propiedad
+    @ManyToOne(fetch = FetchType.LAZY) //puede haber mas de una imagen para una propiedad
     @JoinColumn(name = "property_id", nullable = false)
     private Property property;
 

@@ -79,10 +79,15 @@ class PropertyEndpointsMockMvcTest {
                 .build();
 
         inquiryRepository.deleteAll();
+        inquiryRepository.flush();
         propertyImageRepository.deleteAll();
+        propertyImageRepository.flush();
         propertyRepository.deleteAll();
+        propertyRepository.flush();
         denylistedTokenRepository.deleteAll();
+        denylistedTokenRepository.flush();
         userRepository.deleteAll();
+        userRepository.flush();
 
         owner = userRepository.save(user("owner@example.com", "Owner User", Sex.MALE));
         differentUser = userRepository.save(user("other@example.com", "Other User", Sex.FEMALE));
@@ -90,8 +95,8 @@ class PropertyEndpointsMockMvcTest {
 
     @Test
     void getProperties_withoutToken_returns200AndOnlyPublishedProperties() throws Exception {
-        Property published = propertyRepository.save(publishedProperty(owner.getId(), "Loft publicado"));
-        propertyRepository.save(draftProperty(owner.getId(), "Borrador oculto"));
+        Property published = propertyRepository.save(publishedProperty(owner, "Loft publicado"));
+        propertyRepository.save(draftProperty(owner, "Borrador oculto"));
 
         mockMvc.perform(get("/api/v1/properties"))
                 .andExpect(status().isOk())
@@ -107,8 +112,8 @@ class PropertyEndpointsMockMvcTest {
 
     @Test
     void getProperties_withFilters_returnsMatchingPublishedProperties() throws Exception {
-        Property matching = propertyRepository.save(publishedProperty(owner.getId(), "Casa en Rosario"));
-        propertyRepository.save(publishedProperty(owner.getId(), "Casa en Palermo", "Buenos Aires", 3, 2));
+        Property matching = propertyRepository.save(publishedProperty(owner, "Casa en Rosario"));
+        propertyRepository.save(publishedProperty(owner, "Casa en Palermo", "Buenos Aires", 3, 2));
 
         mockMvc.perform(get("/api/v1/properties")
                         .param("city", "Rosario")
@@ -188,7 +193,7 @@ class PropertyEndpointsMockMvcTest {
 
     @Test
     void getProperty_publishedProperty_withoutToken_returns200() throws Exception {
-        Property property = propertyRepository.save(publishedProperty(owner.getId(), "Publicado visible"));
+        Property property = propertyRepository.save(publishedProperty(owner, "Publicado visible"));
 
         mockMvc.perform(get("/api/v1/properties/{id}", property.getId()))
                 .andExpect(status().isOk())
@@ -199,7 +204,7 @@ class PropertyEndpointsMockMvcTest {
 
     @Test
     void getProperty_draftProperty_asOwner_returns200() throws Exception {
-        Property property = propertyRepository.save(draftProperty(owner.getId(), "Borrador propio"));
+        Property property = propertyRepository.save(draftProperty(owner, "Borrador propio"));
 
         mockMvc.perform(get("/api/v1/properties/{id}", property.getId())
                         .header(HttpHeaders.AUTHORIZATION, bearerToken(owner)))
@@ -210,7 +215,7 @@ class PropertyEndpointsMockMvcTest {
 
     @Test
     void getProperty_draftProperty_withoutToken_returns404() throws Exception {
-        Property property = propertyRepository.save(draftProperty(owner.getId(), "Borrador oculto"));
+        Property property = propertyRepository.save(draftProperty(owner, "Borrador oculto"));
 
         mockMvc.perform(get("/api/v1/properties/{id}", property.getId()))
                 .andExpect(status().isNotFound());
@@ -224,7 +229,7 @@ class PropertyEndpointsMockMvcTest {
 
     @Test
     void patchProperty_asOwner_returns200AndOnlyChangesSentFields() throws Exception {
-        Property property = propertyRepository.save(draftProperty(owner.getId(), "Titulo original"));
+        Property property = propertyRepository.save(draftProperty(owner, "Titulo original"));
 
         mockMvc.perform(patch("/api/v1/properties/{id}", property.getId())
                         .header(HttpHeaders.AUTHORIZATION, bearerToken(owner))
@@ -249,7 +254,7 @@ class PropertyEndpointsMockMvcTest {
 
     @Test
     void patchProperty_asDifferentUser_returns403AndDoesNotModifyProperty() throws Exception {
-        Property property = propertyRepository.save(draftProperty(owner.getId(), "Titulo original"));
+        Property property = propertyRepository.save(draftProperty(owner, "Titulo original"));
 
         mockMvc.perform(patch("/api/v1/properties/{id}", property.getId())
                         .header(HttpHeaders.AUTHORIZATION, bearerToken(differentUser))
@@ -267,7 +272,7 @@ class PropertyEndpointsMockMvcTest {
 
     @Test
     void patchProperty_withoutToken_returns401() throws Exception {
-        Property property = propertyRepository.save(draftProperty(owner.getId(), "Titulo original"));
+        Property property = propertyRepository.save(draftProperty(owner, "Titulo original"));
 
         mockMvc.perform(patch("/api/v1/properties/{id}", property.getId())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -294,7 +299,7 @@ class PropertyEndpointsMockMvcTest {
 
     @Test
     void patchProperty_withNegativePrice_returns400() throws Exception {
-        Property property = propertyRepository.save(draftProperty(owner.getId(), "Titulo original"));
+        Property property = propertyRepository.save(draftProperty(owner, "Titulo original"));
 
         mockMvc.perform(patch("/api/v1/properties/{id}", property.getId())
                         .header(HttpHeaders.AUTHORIZATION, bearerToken(owner))
@@ -309,7 +314,7 @@ class PropertyEndpointsMockMvcTest {
 
     @Test
     void deleteProperty_asOwner_returns204AndSoftDeletesProperty() throws Exception {
-        Property property = propertyRepository.save(draftProperty(owner.getId(), "Para borrar"));
+        Property property = propertyRepository.save(draftProperty(owner, "Para borrar"));
 
         mockMvc.perform(delete("/api/v1/properties/{id}", property.getId())
                         .header(HttpHeaders.AUTHORIZATION, bearerToken(owner)))
@@ -322,7 +327,7 @@ class PropertyEndpointsMockMvcTest {
 
     @Test
     void deleteProperty_asDifferentUser_returns403AndDoesNotDeleteProperty() throws Exception {
-        Property property = propertyRepository.save(draftProperty(owner.getId(), "No borrar"));
+        Property property = propertyRepository.save(draftProperty(owner, "No borrar"));
 
         mockMvc.perform(delete("/api/v1/properties/{id}", property.getId())
                         .header(HttpHeaders.AUTHORIZATION, bearerToken(differentUser)))
@@ -334,7 +339,7 @@ class PropertyEndpointsMockMvcTest {
 
     @Test
     void deleteProperty_withoutToken_returns401() throws Exception {
-        Property property = propertyRepository.save(draftProperty(owner.getId(), "Sin token"));
+        Property property = propertyRepository.save(draftProperty(owner, "Sin token"));
 
         mockMvc.perform(delete("/api/v1/properties/{id}", property.getId()))
                 .andExpect(status().isUnauthorized());
@@ -363,13 +368,13 @@ class PropertyEndpointsMockMvcTest {
                 Instant.now());
     }
 
-    private Property publishedProperty(Long ownerId, String title) {
-        Property property = draftProperty(ownerId, title);
+    private Property publishedProperty(User owner, String title) {
+        Property property = draftProperty(owner, title);
         property.publish(Instant.now());
         return property;
     }
 
-    private Property publishedProperty(Long ownerId, String title, String city, int bedrooms, int bathrooms) {
+    private Property publishedProperty(User owner, String title, String city, int bedrooms, int bathrooms) {
         Property property = Property.draft(
                 title,
                 "Descripcion de prueba",
@@ -384,13 +389,13 @@ class PropertyEndpointsMockMvcTest {
                 bathrooms,
                 BigDecimal.valueOf(90),
                 BigDecimal.valueOf(110),
-                ownerId,
+                owner,
                 Instant.now());
         property.publish(Instant.now());
         return property;
     }
 
-    private Property draftProperty(Long ownerId, String title) {
+    private Property draftProperty(User owner, String title) {
         return Property.draft(
                 title,
                 "Descripcion de prueba",
@@ -405,7 +410,7 @@ class PropertyEndpointsMockMvcTest {
                 1,
                 BigDecimal.valueOf(70),
                 BigDecimal.valueOf(80),
-                ownerId,
+                owner,
                 Instant.now());
     }
 }

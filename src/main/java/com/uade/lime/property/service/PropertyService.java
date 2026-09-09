@@ -170,6 +170,7 @@ public class PropertyService {
     @Transactional
     public PropertyResponse create(CreatePropertyRequest request, UserPrincipal owner) {
         Instant now = Instant.now();
+        User ownerEntity = ownerEntityOf(owner);
         Property property = Property.draft(
                 request.title(),
                 request.description(),
@@ -184,7 +185,7 @@ public class PropertyService {
                 request.bathrooms(),
                 request.coveredArea(),
                 request.totalArea(),
-                owner.id(),
+                ownerEntity,
                 now);
         return PropertyResponse.from(repository.save(property), ownerResponseOf(owner));
     }
@@ -223,7 +224,7 @@ public class PropertyService {
         Specification<Property> filters = (root, query, builder) -> {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(builder.isNull(root.get("deletedAt")));
-            predicates.add(builder.equal(root.get("ownerId"), user.id()));
+            predicates.add(builder.equal(root.get("owner").get("id"), user.id()));
             if (city != null && !city.isBlank()) {
                 predicates.add(builder.equal(builder.lower(root.get("city")), city.trim().toLowerCase()));
             }
@@ -359,6 +360,11 @@ public class PropertyService {
         if (!property.getOwnerId().equals(userId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not the owner of this property");
         }
+    }
+
+    private User ownerEntityOf(UserPrincipal owner) {
+        return userRepository.findById(owner.id())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authenticated user not found"));
     }
 
     private OwnerResponse ownerResponseOf(UserPrincipal user) {
