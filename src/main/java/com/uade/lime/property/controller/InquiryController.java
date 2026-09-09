@@ -79,7 +79,8 @@ public class InquiryController {
 
         Inquiry inquiry = requireOwnedInquiry(inquiryId, user.id());
         inquiry.markRead(Instant.now());
-        return InquiryResponse.from(inquiryRepository.save(inquiry));
+        inquiryRepository.save(inquiry);
+        return InquiryResponse.from(inquiry);
     }
 
     private Page<Inquiry> findInboxPage(Long ownerId, Long propertyId, boolean unreadOnly, PageRequest pageable) {

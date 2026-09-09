@@ -33,6 +33,8 @@ import com.uade.lime.auth.security.JwtService;
 import com.uade.lime.property.model.OperationType;
 import com.uade.lime.property.model.Property;
 import com.uade.lime.property.model.PropertyType;
+import com.uade.lime.property.repository.InquiryRepository;
+import com.uade.lime.property.repository.PropertyImageRepository;
 import com.uade.lime.property.repository.PropertyRepository;
 
 @SpringBootTest
@@ -60,6 +62,12 @@ class PropertyAuthorizationMockMvcTest {
     private PropertyRepository propertyRepository;
 
     @Autowired
+    private PropertyImageRepository propertyImageRepository;
+
+    @Autowired
+    private InquiryRepository inquiryRepository;
+
+    @Autowired
     private DenylistedTokenRepository denylistedTokenRepository;
 
     private User owner;
@@ -72,6 +80,8 @@ class PropertyAuthorizationMockMvcTest {
                 .build();
 
         denylistedTokenRepository.deleteAll();
+        inquiryRepository.deleteAll();
+        propertyImageRepository.deleteAll();
         propertyRepository.deleteAll();
         userRepository.deleteAll();
 
